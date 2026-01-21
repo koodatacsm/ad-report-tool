@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v27.0</title>
+    <title>廣告週報生成小工具 v29.0</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -24,12 +24,15 @@
         .metric-item input { width: auto; margin-right: 6px; }
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
+        .custom-note-box { margin: 15px 0; padding: 10px; border: 1px dashed var(--g-blue); border-radius: 6px; background: #f0f7ff; }
         #preview { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #3c4043; background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; }
         .btn { background: var(--g-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
         .btn-outline { background: white; color: var(--g-gray); border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; }
         .hidden { display: none; }
         .guide-box { font-size: 11px; color: #5f6368; background: rgba(255,255,255,0.6); padding: 8px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ddd; line-height: 1.5; }
+        .guide-highlight { color: #d93025; font-weight: bold; }
+        .guide-arrow { color: var(--g-blue); font-weight: bold; margin: 0 4px; }
         
         /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
@@ -43,26 +46,27 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v27.0</h1>
-            <span class="update-date">最後更新日期：2026/01/21 (含本機封存功能)</span>
+            <h1>廣告週報生成小工具 v29.0</h1>
+            <span class="update-date">最後更新日期：2026/01/22 (新增客製欄位)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
-            <select id="templateLoader" style="width: 150px;" onchange="loadTemplate()"><option value="">載入欄位範本</option></select>
+            <button class="btn btn-outline" onclick="resetDefault()">🔄 重置 (Default)</button>
+            <select id="templateLoader" style="width: 150px;" onchange="loadTemplate()"><option value="">選擇客戶範本</option></select>
             <button class="btn btn-outline" onclick="exportTemplates()">🔗 匯出設定</button>
             <button class="btn btn-outline" onclick="importTemplates()">📥 匯入設定</button>
         </div>
     </header>
     <main>
         <div class="card">
-            <div class="card-header">數據匯入與策略生成 <button class="btn" style="background:var(--success)" onclick="saveTemplate()">💾 儲存欄位設定</button></div>
+            <div class="card-header">數據匯入與策略生成 <button class="btn" style="background:var(--success)" onclick="saveTemplate()">💾 儲存為客戶範本</button></div>
             <div class="content">
                 <div class="import-box">
                     <label>⚡ 數據快速解析器 (貼入報表總計列)</label>
                     <textarea id="bulkPaste" rows="2" placeholder="貼入數據後，下方欄位將自動填入並勾選..." oninput="parseBulkData()"></textarea>
                 </div>
                 <div style="margin-bottom:10px;">
-                    <label>客戶名稱</label>
+                    <label>客戶名稱 (儲存範本時將以此為名)</label>
                     <input type="text" id="client" value="" placeholder="輸入客戶名稱..." oninput="run()">
                 </div>
                 
@@ -82,7 +86,7 @@
                     <div style="flex:1;"><label>結束日期</label><input type="date" id="eDate" onchange="run()"></div>
                 </div>
                 
-                <label style="color:var(--g-blue)">1. 數據總覽欄位 (自動勾選)</label>
+                <label style="color:var(--g-blue)">數據總覽欄位 (自動勾選)</label>
                 <div class="metric-selector">
                     <label class="metric-item"><input type="checkbox" class="m-check" value="imp" onchange="toggleInputs()"> 曝光次數</label>
                     <label class="metric-item"><input type="checkbox" class="m-check" value="click" onchange="toggleInputs()"> 點擊次數</label>
@@ -105,11 +109,21 @@
                     <div id="div-progress" class="input-group hidden"><label>進度%</label><input type="text" id="v-progress" oninput="autoCheck('progress'); run()"></div>
                 </div>
 
+                <div class="custom-note-box">
+                    <label style="color:var(--g-blue); margin-bottom:5px;">客製化備註 (自由欄位)</label>
+                    <textarea id="customNote" rows="3" placeholder="在此輸入針對該客戶的客製化說明，此內容會隨範本儲存 (例如：本週含特殊節慶活動...)" oninput="run()"></textarea>
+                </div>
+
                 <div class="builder-box">
                     <label style="color:var(--accent)">🔍 優化分析生成器</label>
+                    
                     <div class="guide-box">
-                        <strong>💡 填寫指南：</strong> 選擇分類與指標，輸入如「品牌字點擊大幅成長」後，點擊按鈕即可生成專業句型。
+                        <strong>💡 填寫指南：</strong><br>
+                        1. 選擇分類 <b>[搜尋與關鍵字]</b> + 指標 <b>[點擊數]</b><br>
+                        2. 輸入完整描述： <span class="guide-highlight">品牌字點擊大幅成長，顯示品牌聲量提升</span><br>
+                        3. 輸出結果： <span class="guide-arrow">→</span> 觀察關鍵字表現，<b>品牌字點擊大幅成長，顯示品牌聲量提升</b> (100→150)，反映出核心字組策略成功...
                     </div>
+
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
                         <select id="level1" style="flex:1;" onchange="updateLevel2()">
                             <option value="廣告整體方向">廣告整體方向</option>
@@ -118,13 +132,17 @@
                             <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
                             <option value="競品與外部環境">競品與外部環境</option>
                         </select>
-                        <select id="level2" style="flex:1;"></select>
+                        <select id="level2" style="flex:1;">
+                            </select>
                     </div>
+                    
                     <div style="display:flex; gap:8px; margin-bottom:8px; background:rgba(255,255,255,0.5); padding:8px; border-radius:4px;">
-                        <div style="flex:1;"><label style="font-size:9px;">前期數值</label><input type="text" id="comp_prev" placeholder="歷史數據"></div>
-                        <div style="flex:1;"><label style="font-size:9px;">本期數值</label><input type="text" id="comp_this" placeholder="現在數據"></div>
+                        <div style="flex:1;"><label style="font-size:9px;">前期數值</label><input type="text" id="comp_prev" placeholder="例如: 5.41"></div>
+                        <div style="flex:1;"><label style="font-size:9px;">本期數值</label><input type="text" id="comp_this" placeholder="例如: 5.67"></div>
                     </div>
-                    <input type="text" id="obsInput" placeholder="輸入事實描述..." style="width:100%; margin-bottom:8px;">
+
+                    <input type="text" id="obsInput" placeholder="輸入完整描述 (如：A素材點閱率上升，吸引大量訪客)..." style="width:100%; margin-bottom:8px;">
+                    
                     <div style="display:flex; gap:5px;">
                         <button class="btn btn-add" onclick="addStage('found')">加到本週發現</button>
                         <button class="btn btn-add" style="background:#ef6c00" onclick="addStage('executed')">加到本週已執行</button>
@@ -179,11 +197,11 @@
             },
             "客層與受眾表現": {
                 found: ["客層表現方面，${val} ${comp}，顯示特定受眾群體之轉換意願與互動表現。", "分析受眾分佈狀況，${val} ${comp}，反映出主力核心客群之受眾特徵與數據走勢吻合。", "觀察年齡與性別數據，${val} ${comp}，顯示目前廣告信號能有效觸及具潛力的目標族群。", "檢視受眾數據，${val} ${comp}，顯示該興趣族群對於本檔活動之參與度高於平均。", "分析客群輪廓，${val} ${comp}，反映出新開發之受眾標籤具備良好的開發潛力。"],
-                executed: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別級距之出價增益權重。", "針對互動率不佳之客群本週已執行減價動作，並將預算集中於成效佳之受眾。", "因應客層${val}之變化，本週已重新梳理受眾信號標籤，聚焦高品質進站訪客。", "本週已針對${val}之高潛力受眾進行獨立設定，以觀察其長期轉換價值。"],
+                executed: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別級距之出價增益權重。", "針對互動率不佳之客群本週已執行減價動作，並將預算集中於成效佳之「${val}」受眾。", "因應客層${val}之變化，本週已重新梳理受眾信號標籤，聚焦高品質進站訪客。", "本週已針對${val}之高潛力受眾進行獨立設定，以觀察其長期轉換價值。"],
                 nextDirection: ["下週調整方向預計監測客層${val}之走勢，並視成效評估是否導入更精細之標籤過濾。", "下週計畫針對${val}之受眾特徵微調文案，評估是否能進一步帶動該族群之轉化意願。", "後續將針對受眾成效進行診斷，評估是否擴大類似受眾規模以獲得更多潛在流量。", "下週預計針對表現優異之${val}客群規劃專屬素材，以深化品牌溝通。"]
             },
             "搜尋與關鍵字分析": {
-                found: ["搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中仍具備一定競爭力。", "觀察關鍵字表現，${val} ${comp}，反映出核心字組之出價策略成功攔截精準流量。", "分析本週搜尋字詞，訪客搜尋意圖與產品高度吻合，${val} ${comp}。", "檢視搜尋報告，${val} ${comp}反映出目前品牌核心字與產品需求字之穩定佔比。", "觀察字詞趨勢，${val} ${comp}，顯示市場對於特定議題之搜尋熱度有所變化。"],
+                found: ["搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中仍具備一定競爭力。", "觀察關鍵字表現，${val} ${comp}，反映出核心字組之策略成功攔截精準流量。", "分析本週搜尋字詞，訪客搜尋意圖與產品高度吻合，${val} ${comp}。", "檢視搜尋報告，${val} ${comp}反映出目前品牌核心字與產品需求字之穩定佔比。", "觀察字詞趨勢，${val} ${comp}，顯示市場對於特定議題之搜尋熱度有所變化。"],
                 executed: ["針對關鍵字${val}之現狀，本週已執行字詞比對模式優化並排除不相關之流量雜訊。", "已針對搜尋字詞中「${val}」之狀況進行過濾，確保預算集中於高效字組。", "因應搜尋變化趨勢，本週已針對關鍵字清單進行擴充與否定調整，旨在提升流量純度。", "本週已針對高轉換潛力之「${val}」字組提高出價，以爭取首頁頂端排名。"],
                 nextDirection: ["下週調整方向計畫針對「${val}」之搜量趨勢持續觀測，並根據反饋進行出價調整。", "下週預計評估是否新增與${val}相關之長尾關鍵字，以網羅更多潛在進站機會。", "後續將針對關鍵字競價熱度進行診斷，計畫針對表現佳之「${val}」加強版位保護。", "下週計畫針對${val}之字詞表現進行深度分析，並視競品狀況調整預算配比。"]
             },
@@ -227,7 +245,8 @@
                 compStr = `(${formatCompVal(preVal, l2)} → ${formatCompVal(curVal, l2)})`;
             }
             const pool = db[l1][s] || db[l1]["found"];
-            const text = pool[Math.floor(Math.random() * pool.length)].replace('${val}', input).replace('${comp}', compStr);
+            const template = pool[Math.floor(Math.random() * pool.length)];
+            const text = template.replace('${val}', input).replace('${comp}', compStr);
             const targetId = 'stage' + s.charAt(0).toUpperCase() + s.slice(1);
             document.getElementById(targetId).value += (document.getElementById(targetId).value ? '\n' : '') + text;
             document.getElementById('obsInput').value = ""; document.getElementById('comp_this').value = ""; document.getElementById('comp_prev').value = ""; run();
@@ -283,13 +302,17 @@
             document.querySelectorAll('.m-check:checked').forEach(ck => {
                 perf.push(`${labels[ck.value]} ${formatCompVal(get('v-' + ck.value), labels[ck.value])}`);
             });
-            document.getElementById('preview').innerText = `Dear all,\n\n附件為 ${get('client') || '[客戶]'} ${platformText} 廣告報表，請查閱，謝謝。\n\n【帳戶狀況說明】\n廣告成效走期 ${s} - ${e}\n廣告成效：${perf.join('、')}。\n\n【帳戶優化說明】\n本週發現：\n${get('stageFound') || '無'}\n\n本週已執行：\n${get('stageExecuted') || '無'}\n\n下週調整方向：\n${get('stageNextDirection') || '無'}\n\nBest regards,`;
+            
+            // v29: Get custom note
+            const note = get('customNote') ? `\n${get('customNote')}\n` : '';
+
+            document.getElementById('preview').innerText = `Dear all,\n\n附件為 ${get('client') || '[客戶]'} ${platformText} 廣告報表，請查閱，謝謝。\n\n【帳戶狀況說明】\n廣告成效走期 ${s} - ${e}\n廣告成效：${perf.join('、')}。\n${note}\n【帳戶優化說明】\n本週發現：\n${get('stageFound') || '無'}\n\n本週已執行：\n${get('stageExecuted') || '無'}\n\n下週調整方向：\n${get('stageNextDirection') || '無'}\n\nBest regards,`;
         }
 
         function saveToHistory() {
             const client = document.getElementById('client').value;
             if (!client) return alert('請先輸入客戶名稱才能封存！');
-            const historyItem = { id: Date.now(), timestamp: new Date().toLocaleString(), client, platform: Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value), dateRange: { start: document.getElementById('sDate').value, end: document.getElementById('eDate').value }, metrics: {}, stages: { found: document.getElementById('stageFound').value, executed: document.getElementById('stageExecuted').value, next: document.getElementById('stageNextDirection').value } };
+            const historyItem = { id: Date.now(), timestamp: new Date().toLocaleString(), client, platform: Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value), dateRange: { start: document.getElementById('sDate').value, end: document.getElementById('eDate').value }, metrics: {}, stages: { found: document.getElementById('stageFound').value, executed: document.getElementById('stageExecuted').value, next: document.getElementById('stageNextDirection').value }, customNote: document.getElementById('customNote').value };
             document.querySelectorAll('.m-check:checked').forEach(ck => { historyItem.metrics[ck.value] = document.getElementById('v-' + ck.value).value; });
             let history = JSON.parse(localStorage.getItem('tpl_v27_history') || '[]');
             history.unshift(historyItem); localStorage.setItem('tpl_v27_history', JSON.stringify(history));
@@ -315,6 +338,7 @@
             const item = history.find(i => i.id === id); if (!item) return;
             document.getElementById('client').value = item.client; document.getElementById('sDate').value = item.dateRange.start; document.getElementById('eDate').value = item.dateRange.end;
             document.getElementById('stageFound').value = item.stages.found; document.getElementById('stageExecuted').value = item.stages.executed; document.getElementById('stageNextDirection').value = item.stages.next;
+            if(item.customNote) document.getElementById('customNote').value = item.customNote;
             document.querySelectorAll('.p-check').forEach(ck => ck.checked = item.platform.includes(ck.value));
             document.querySelectorAll('.m-check').forEach(ck => ck.checked = false);
             for (let key in item.metrics) { if (document.getElementById('v-' + key)) { document.getElementById('v-' + key).value = item.metrics[key]; document.querySelector(`.m-check[value="${key}"]`).checked = true; } }
@@ -325,23 +349,40 @@
             const c = document.getElementById('client').value; if (!c) return alert('請輸入客戶名稱');
             const checks = Array.from(document.querySelectorAll('.m-check:checked')).map(ck => ck.value);
             const platforms = Array.from(document.querySelectorAll('.p-check:checked')).map(ck => ck.value);
-            localStorage.setItem('tpl_v27_' + c, JSON.stringify({ platforms, checks }));
-            updateLoader(); alert('欄位設定已儲存！');
+            const customNote = document.getElementById('customNote').value;
+            localStorage.setItem('tpl_v28_' + c, JSON.stringify({ platforms, checks, customNote }));
+            updateLoader(); alert('範本已儲存為：' + c);
         }
         function updateLoader() {
-            const l = document.getElementById('templateLoader'); l.innerHTML = '<option value="">載入欄位範本</option>';
-            Object.keys(localStorage).filter(k => k.startsWith('tpl_v27_')).forEach(k => l.add(new Option(k.replace('tpl_v27_',''), k.replace('tpl_v27_',''))));
+            const l = document.getElementById('templateLoader'); l.innerHTML = '<option value="">選擇客戶範本</option>';
+            Object.keys(localStorage).filter(k => k.startsWith('tpl_v28_')).forEach(k => l.add(new Option(k.replace('tpl_v28_',''), k.replace('tpl_v28_',''))));
         }
         function loadTemplate() {
             const c = document.getElementById('templateLoader').value; if (!c) return;
-            const d = JSON.parse(localStorage.getItem('tpl_v27_'+c));
+            const d = JSON.parse(localStorage.getItem('tpl_v28_'+c));
             document.getElementById('client').value = c; 
+            if(d.customNote) document.getElementById('customNote').value = d.customNote;
             document.querySelectorAll('.p-check').forEach(ck => ck.checked = d.platforms.includes(ck.value));
             document.querySelectorAll('.m-check').forEach(ck => ck.checked = d.checks.includes(ck.value));
             toggleInputs(); run();
         }
-        function copy() { navigator.clipboard.writeText(document.getElementById('preview').innerText); alert('已複製報表！'); }
-        function exportTemplates() { prompt("複製代碼分享：", JSON.stringify(Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('tpl_v27_')).map(k => [k, localStorage.getItem(k)])))); }
+        function resetDefault() {
+            if(!confirm('確定要重置所有欄位嗎？')) return;
+            document.getElementById('client').value = '';
+            document.getElementById('sDate').value = '';
+            document.getElementById('eDate').value = '';
+            document.getElementById('stageFound').value = '';
+            document.getElementById('stageExecuted').value = '';
+            document.getElementById('stageNextDirection').value = '';
+            document.getElementById('customNote').value = '';
+            document.getElementById('bulkPaste').value = '';
+            document.querySelectorAll('.p-check').forEach(ck => ck.checked = false);
+            document.querySelectorAll('.m-check').forEach(ck => ck.checked = false);
+            document.querySelectorAll('input[id^="v-"]').forEach(el => el.value = '');
+            toggleInputs(); run();
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('preview').innerText); alert('報表已複製！'); }
+        function exportTemplates() { prompt("複製代碼分享：", JSON.stringify(Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('tpl_v28_')).map(k => [k, localStorage.getItem(k)])))); }
         function importTemplates() { const j = prompt("貼入代碼："); if (j) { const d = JSON.parse(j); Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); updateLoader(); alert('匯入成功'); run(); }}
         window.onload = () => { updateLevel2(); updateLoader(); run(); };
     </script>
