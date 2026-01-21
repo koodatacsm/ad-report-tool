@@ -74,4 +74,254 @@
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google PMax" onchange="run()"> Google PMax</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google GDN" onchange="run()"> Google GDN</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google KWS" onchange="run()"> Google KWS</label>
-                        <label class="platform-item"><input type="checkbox" class="p-check" value="Meta" onchange="
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="Meta" onchange="run()"> Meta</label>
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="LINE" onchange="run()"> LINE</label>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div style="flex:1;"><label>開始日期</label><input type="date" id="sDate" onchange="run()"></div>
+                    <div style="flex:1;"><label>結束日期</label><input type="date" id="eDate" onchange="run()"></div>
+                </div>
+                
+                <label style="color:var(--g-blue)">其他成效指標</label>
+                <div class="metric-selector">
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="imp" onchange="toggleInputs()"> 曝光</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="click" onchange="toggleInputs()"> 點擊</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="conv" onchange="toggleInputs()"> 轉換數</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="ctr" onchange="toggleInputs()"> CTR</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="cpc" onchange="toggleInputs()"> CPC</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="cpa" onchange="toggleInputs()"> CPA</label>
+                    <label class="metric-item"><input type="checkbox" class="m-check" value="spend" onchange="toggleInputs()"> 花費</label>
+                </div>
+
+                <div id="inputGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
+                    <div id="div-imp" class="input-group hidden"><label>曝光</label><input type="text" id="v-imp" oninput="run()"></div>
+                    <div id="div-click" class="input-group hidden"><label>點擊</label><input type="text" id="v-click" oninput="run()"></div>
+                    <div id="div-conv" class="input-group hidden"><label>轉換</label><input type="text" id="v-conv" oninput="run()"></div>
+                    <div id="div-ctr" class="input-group hidden"><label>CTR%</label><input type="text" id="v-ctr" oninput="run()"></div>
+                    <div id="div-cpc" class="input-group hidden"><label>CPC</label><input type="text" id="v-cpc" oninput="run()"></div>
+                    <div id="div-cpa" class="input-group hidden"><label>CPA</label><input type="text" id="v-cpa" oninput="run()"></div>
+                    <div id="div-spend" class="input-group hidden"><label>花費</label><input type="text" id="v-spend" oninput="run()"></div>
+                </div>
+
+                <div class="custom-note-box">
+                    <label style="color:var(--g-blue)">客製化備註</label>
+                    <textarea id="customNote" rows="2" placeholder="特殊節慶、活動說明..." oninput="run()"></textarea>
+                </div>
+
+                <div class="builder-box">
+                    <label style="color:var(--accent)">🔍 優化建議生成 (點擊按鈕自動填寫)</label>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <select id="level1" style="flex:1;" onchange="updateLevel2()">
+                            <option value="廣告整體方向">廣告整體方向</option>
+                            <option value="素材與版位表現">素材與版位表現</option>
+                            <option value="客層與受眾表現">客層與受眾表現</option>
+                            <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
+                        </select>
+                        <select id="level2" style="flex:1;"></select>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <input type="text" id="obsInput" placeholder="描述(如：A素材點閱高)..." style="flex:2;">
+                        <input type="text" id="comp_prev" placeholder="前期" style="flex:0.5;">
+                        <input type="text" id="comp_this" placeholder="本期" style="flex:0.5;">
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-add" onclick="addStage('insight')">＋ 數據洞察</button>
+                        <button class="btn btn-add" style="background:#ef6c00" onclick="addStage('action')">＋ 下一步行動</button>
+                    </div>
+                </div>
+                <div class="stage-box"><label>【數據洞察】</label><textarea id="stageInsight" rows="3" oninput="run()"></textarea></div>
+                <div class="stage-box"><label>【下一步行動】</label><textarea id="stageAction" rows="3" oninput="run()"></textarea></div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">最終報表預覽 
+                <div>
+                    <button class="btn" style="background:var(--warning); color:black;" onclick="saveToHistory()">📥 封存紀錄</button>
+                    <button class="btn" onclick="copy()">複製文字</button>
+                </div>
+            </div>
+            <div class="content" style="background: #f1f3f4;"><div id="preview"></div></div>
+        </div>
+    </main>
+
+    <div id="historyModal" class="modal">
+        <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>📜 歷史紀錄</h2>
+                <span class="close" onclick="closeHistory()">&times;</span>
+            </div>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const level2Options = {
+            "廣告整體方向": ["轉換成本", "點擊數", "點擊成本", "點閱率", "花費進度"],
+            "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材表現"],
+            "客層與受眾表現": ["互動率", "點擊成本", "轉換數"],
+            "搜尋與關鍵字分析": ["搜尋字詞", "點擊數", "轉換數"]
+        };
+
+        const db = {
+            "廣告整體方向": {
+                insight: ["觀察廣告整體成效，${val} ${comp}，顯示目前帳戶投遞策略能有效維持穩定走勢。", "檢視本週整體數據，${val} ${comp}，反映出市場競價環境之變動。"],
+                action: ["針對目前${val}趨勢，已完成出價參數校正，以穩定長期之獲客成本。", "下週計畫進行深度診斷，並視情況調整出價策略以最大化效益。"]
+            },
+            "素材與版位表現": {
+                insight: ["素材方面，${val} ${comp}，反映出目前視覺切點對客群之吸引力。", "分析素材回饋，${val} ${comp}反映出目前素材方向符合市場趨勢。"],
+                action: ["已完成表現較差之素材汰換，並針對${val}之成效反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
+            },
+            "客層與受眾表現": {
+                insight: ["分析受眾分佈，${val} ${comp}，顯示目前廣告信號能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
+                action: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別之出價權重。", "下週預計監測客層${val}之走勢，並評估是否導入更精細標籤。"]
+            },
+            "搜尋與關鍵字分析": {
+                insight: ["觀察關鍵字表現，${val} ${comp}，反映出核心字組成功攔截精準流量。", "搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中具備競爭力。"],
+                action: ["針對關鍵字${val}之現狀，已執行字詞比對模式優化並排除雜訊。", "下週計畫針對「${val}」之搜量趨勢觀測，並根據反饋調整出價。"]
+            }
+        };
+
+        function updateLevel2() {
+            const l1 = document.getElementById('level1').value;
+            const l2 = document.getElementById('level2');
+            l2.innerHTML = "";
+            level2Options[l1].forEach(opt => l2.add(new Option(opt, opt)));
+        }
+
+        function formatCompVal(val, metric) {
+            if (!val) return "";
+            let clean = val.replace(/[$,%\s]/g, '').replace('NT', '');
+            let num = parseFloat(clean);
+            if (isNaN(num)) return val;
+            let formatted = new Intl.NumberFormat('zh-TW').format(num);
+            if (["成本", "花費", "CPC", "CPA"].some(k => metric.includes(k))) return "$" + formatted;
+            if (["率", "進度", "CTR"].some(k => metric.includes(k))) return formatted + "%";
+            return formatted;
+        }
+
+        function addStage(type) {
+            const l1 = document.getElementById('level1').value;
+            const input = document.getElementById('obsInput').value;
+            if (!input) return;
+            const curVal = document.getElementById('comp_this').value;
+            const preVal = document.getElementById('comp_prev').value;
+            let compStr = (curVal && preVal) ? `(${formatCompVal(preVal, '數字')} → ${formatCompVal(curVal, '數字')})` : "";
+            
+            // 隨機從 db 挑選一個模板
+            const pool = db[l1][type] || db[l1]["insight"];
+            const template = pool[Math.floor(Math.random() * pool.length)];
+            const text = template.replace('${val}', input).replace('${comp}', compStr);
+            
+            const targetId = type === 'insight' ? 'stageInsight' : 'stageAction';
+            document.getElementById(targetId).value += (document.getElementById(targetId).value ? '\n' : '') + text;
+            
+            // 清空輸入
+            document.getElementById('obsInput').value = ""; 
+            document.getElementById('comp_this').value = ""; 
+            document.getElementById('comp_prev').value = ""; 
+            run();
+        }
+
+        function parseBulkData() {
+            const raw = document.getElementById('bulkPaste').value.trim();
+            if (!raw) return;
+            const lines = raw.split(/\n/).map(line => line.split(/\t/));
+            let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
+            const h = data[0], v = data[data.length - 1];
+            const m = { 
+                imp: ["曝光", "展示"], click: ["點擊"], conv: ["轉換", "成果"], 
+                ctr: ["CTR", "點閱率"], cpc: ["CPC", "單次點擊"], 
+                cpa: ["CPA", "轉換成本"], spend: ["花費", "費用"], progress: ["進度"]
+            };
+            h.forEach((header, idx) => {
+                for (let k in m) {
+                    if (m[k].some(key => header.includes(key))) {
+                        let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '').replace('NT', '') : "";
+                        if (k === 'progress') { document.getElementById('v-progress').value = val; }
+                        else if (document.getElementById('v-' + k)) {
+                            document.getElementById('v-' + k).value = val;
+                            document.querySelector(`.m-check[value="${k}"]`).checked = true;
+                        }
+                    }
+                }
+            });
+            toggleInputs(); run();
+        }
+
+        function toggleInputs() {
+            document.querySelectorAll('.m-check').forEach(ck => {
+                const div = document.getElementById('div-' + ck.value);
+                ck.checked ? div.classList.remove('hidden') : div.classList.add('hidden');
+            });
+            run();
+        }
+
+        function run() {
+            const get = (id) => document.getElementById(id).value;
+            const s = get('sDate').replace(/-/g, '/') || '__/__/__', e = get('eDate').replace(/-/g, '/') || '__/__/__';
+            
+            let platforms = Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value);
+            const platformText = platforms.length > 0 ? platforms.join(' + ') : '[平台]';
+            
+            let perf = [];
+            const labels = {imp:"曝光", click:"點擊", conv:"轉換", ctr:"CTR", cpc:"CPC", cpa:"CPA", spend:"花費"};
+            document.querySelectorAll('.m-check:checked').forEach(ck => {
+                perf.push(`${labels[ck.value]} ${formatCompVal(get('v-' + ck.value), labels[ck.value])}`);
+            });
+            
+            const progress = get('v-progress') ? `目前花費進度：${get('v-progress')}%\n` : '';
+            const note = get('customNote') ? `備註：${get('customNote')}\n` : '';
+
+            document.getElementById('preview').innerText = `Dear all,
+
+附件為 ${get('client') || '[客戶]'} ${platformText} 廣告報表，請查閱。
+
+【帳戶狀況說明】
+廣告期間：${s} - ${e}
+廣告成效：${perf.join('、')}
+${progress}${note}
+【優化分析與建議】
+數據洞察：
+${get('stageInsight') || '尚無洞察內容'}
+
+下一步行動：
+${get('stageAction') || '尚無行動規劃'}
+
+Best regards,`;
+        }
+
+        // --- 範本與歷史紀錄功能 (保持不變但適配新欄位) ---
+        function saveToHistory() {
+            const client = document.getElementById('client').value;
+            if (!client) return alert('請先輸入客戶名稱！');
+            const historyItem = { id: Date.now(), timestamp: new Date().toLocaleString(), client, insight: document.getElementById('stageInsight').value, action: document.getElementById('stageAction').value };
+            let history = JSON.parse(localStorage.getItem('tpl_v30_history') || '[]');
+            history.unshift(historyItem); localStorage.setItem('tpl_v30_history', JSON.stringify(history));
+            alert('✅ 報表已封存！');
+        }
+        function openHistory() {
+            const history = JSON.parse(localStorage.getItem('tpl_v30_history') || '[]');
+            const list = document.getElementById('historyList'); list.innerHTML = '';
+            history.forEach(item => {
+                const div = document.createElement('div'); div.className = 'history-item';
+                div.innerHTML = `<div>${item.timestamp.split(' ')[0]}</div><div>${item.client}</div><div>紀錄內容...</div><button class="btn btn-outline" onclick="loadFromHistory(${item.id})">載入</button>`;
+                list.appendChild(div);
+            });
+            document.getElementById('historyModal').style.display = 'block';
+        }
+        function closeHistory() { document.getElementById('historyModal').style.display = 'none'; }
+        function loadFromHistory(id) {
+            const history = JSON.parse(localStorage.getItem('tpl_v30_history') || '[]');
+            const item = history.find(i => i.id === id); if (!item) return;
+            document.getElementById('stageInsight').value = item.insight; document.getElementById('stageAction').value = item.action;
+            run(); closeHistory();
+        }
+        function copy() { navigator.clipboard.writeText(document.getElementById('preview').innerText); alert('已複製！'); }
+        function resetDefault() { if(confirm('重置所有內容？')) location.reload(); }
+        
+        window.onload = () => { updateLevel2(); run(); };
+    </script>
+</body>
+</html>
