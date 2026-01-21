@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v31.0 - 穩定修復版</title>
+    <title>廣告週報生成小工具 v32.0 - 防錯穩定版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -18,22 +18,27 @@
         textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
         
         /* 編輯器樣式 */
-        .toolbar { display: flex; gap: 4px; background: #eee; padding: 4px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; }
-        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 6px; cursor: pointer; font-size: 11px; border-radius: 2px; }
-        .editor { min-height: 80px; border: 1px solid var(--border); padding: 10px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; }
-        .editor:focus { outline: 1px solid var(--g-blue); }
+        .toolbar { display: flex; gap: 4px; background: #f8f9fa; padding: 6px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; }
+        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-size: 12px; border-radius: 3px; font-weight: bold; }
+        .toolbar button:hover { background: #eee; }
+        .editor { min-height: 100px; border: 1px solid var(--border); padding: 12px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; line-height: 1.5; }
+        .editor:focus { outline: 2px solid var(--g-blue); }
 
         .import-box { background: #fffde7; border: 1px dashed #fbc02d; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
         .platform-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
         .platform-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; color: var(--g-gray); }
+        .platform-item input { margin-right: 4px; width: auto; }
+        
         .metric-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
         .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
-        .metric-item input { margin-right: 5px; width: auto; }
+        .metric-item input { width: auto; margin-right: 6px; }
+
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
         .custom-note-box { margin: 15px 0; padding: 10px; border: 1px dashed var(--g-blue); border-radius: 6px; background: #f0f7ff; }
         
-        #preview { white-space: normal; font-size: 13px; line-height: 1.6; color: #3c4043; background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; overflow-y: auto; }
+        /* 預覽視窗 */
+        #preview { white-space: normal; font-size: 13px; line-height: 1.7; color: #3c4043; background: white; padding: 24px; border-radius: 4px; border: 1px solid #ddd; min-height: 600px; overflow-y: auto; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
         
         .btn { background: var(--g-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
@@ -43,15 +48,15 @@
         .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; max-height: 80vh; display: flex; flex-direction: column; }
         .history-list { overflow-y: auto; flex: 1; margin-top: 10px; }
-        .history-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: grid; grid-template-columns: 100px 150px 1fr 50px; align-items: center; }
+        .history-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: grid; grid-template-columns: 100px 150px 1fr 50px; align-items: center; font-size: 13px; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v31.0</h1>
-            <span class="update-date">最後更新：2026/01/22 (富文本穩定版)</span>
+            <h1>廣告週報生成小工具 v32.0</h1>
+            <span class="update-date">最後更新：2026/01/22 (防錯穩定修正版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -67,7 +72,7 @@
             <div class="content">
                 <div class="import-box">
                     <label>⚡ 數據快速解析器</label>
-                    <textarea id="bulkPaste" rows="2" placeholder="貼入數據..." oninput="parseBulkData()"></textarea>
+                    <textarea id="bulkPaste" rows="2" placeholder="貼入報表數據列..." oninput="parseBulkData()"></textarea>
                 </div>
                 
                 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:10px;">
@@ -91,7 +96,7 @@
                     <div style="flex:1;"><label>結束日期</label><input type="date" id="eDate" onchange="run()"></div>
                 </div>
                 
-                <label style="color:var(--g-blue)">成效指標</label>
+                <label style="color:var(--g-blue)">成效指標勾選</label>
                 <div class="metric-selector">
                     <label class="metric-item"><input type="checkbox" class="m-check" value="imp" onchange="toggleInputs()"> 曝光</label>
                     <label class="metric-item"><input type="checkbox" class="m-check" value="click" onchange="toggleInputs()"> 點擊</label>
@@ -113,18 +118,18 @@
                 </div>
 
                 <div class="custom-note-box">
-                    <label style="color:var(--g-blue)">客製化備註</label>
-                    <textarea id="customNote" rows="2" placeholder="其他說明..." oninput="run()"></textarea>
+                    <label style="color:var(--g-blue)">客製化備註 (純文字)</label>
+                    <textarea id="customNote" rows="2" placeholder="在此輸入其他成效備註..." oninput="run()"></textarea>
                 </div>
 
                 <div class="builder-box">
-                    <label style="color:var(--accent)">🔍 優化建議生成</label>
+                    <label style="color:var(--accent)">🔍 優化建議自動生成器</label>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
                         <select id="level1" style="flex:1;" onchange="updateLevel2()"><option value="廣告整體方向">廣告整體方向</option><option value="素材與版位表現">素材與版位表現</option><option value="客層表現">客層表現</option><option value="受眾表現">受眾表現</option><option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option></select>
                         <select id="level2" style="flex:1;"></select>
                     </div>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <input type="text" id="obsInput" placeholder="描述..." style="flex:2;">
+                        <input type="text" id="obsInput" placeholder="描述(如：A素材點閱高)..." style="flex:2;">
                         <input type="text" id="comp_prev" placeholder="前期" style="flex:0.5;">
                         <input type="text" id="comp_this" placeholder="本期" style="flex:0.5;">
                     </div>
@@ -137,7 +142,7 @@
                 <div class="stage-box">
                     <label>【數據洞察】</label>
                     <div class="toolbar">
-                        <button onclick="format('bold')">B</button><button onclick="format('italic')">I</button><button onclick="format('underline')">U</button><input type="color" onchange="format('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="format('insertUnorderedList')">清單</button>
+                        <button onclick="execCmd('bold')">B</button><button onclick="execCmd('italic')">I</button><button onclick="execCmd('underline')">U</button><input type="color" onchange="execCmd('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="execCmd('insertUnorderedList')">清單</button>
                     </div>
                     <div id="stageInsight" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -145,7 +150,7 @@
                 <div class="stage-box">
                     <label>【下一步行動】</label>
                     <div class="toolbar">
-                        <button onclick="format('bold')">B</button><button onclick="format('italic')">I</button><button onclick="format('underline')">U</button><input type="color" onchange="format('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="format('insertUnorderedList')">清單</button>
+                        <button onclick="execCmd('bold')">B</button><button onclick="execCmd('italic')">I</button><button onclick="execCmd('underline')">U</button><input type="color" onchange="execCmd('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="execCmd('insertUnorderedList')">清單</button>
                     </div>
                     <div id="stageAction" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -155,15 +160,4 @@
         <div class="card">
             <div class="card-header">最終報表預覽 
                 <div>
-                    <button class="btn" style="background:var(--warning); color:black;" onclick="saveToHistory()">📥 封存紀錄</button>
-                    <button class="btn" onclick="copy()">複製文字</button>
-                </div>
-            </div>
-            <div class="content" style="background: #f1f3f4;"><div id="preview"></div></div>
-        </div>
-    </main>
-
-    <div id="historyModal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; align-items:center;"><h2>📜 歷史紀錄</h2><span class="close" onclick="closeHistory()">&times;</span></div><div id="historyList" class="history-list"></div></div></div>
-
-    <script>
-        const level2Options = { "廣告整體方向": ["轉換成本", "點擊數", "點擊成本", "點閱率", "花費進度"], "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材
+                    <button class="btn" style
