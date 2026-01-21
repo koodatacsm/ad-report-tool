@@ -65,7 +65,7 @@
                 
                 <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:10px;">
                     <div><label>客戶名稱</label><input type="text" id="client" placeholder="輸入客戶名稱..." oninput="run()"></div>
-                    <div><label style="color:var(--danger)">🔥 花費進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
+                    <div><label style="color:var(--danger)"> 花費進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
                 </div>
                 
                 <div style="margin-bottom:10px;">
@@ -116,7 +116,8 @@
                         <select id="level1" style="flex:1;" onchange="updateLevel2()">
                             <option value="廣告整體方向">廣告整體方向</option>
                             <option value="素材與版位表現">素材與版位表現</option>
-                            <option value="客層與受眾表現">客層與受眾表現</option>
+                            <option value="客層表現">客層表現</option>
+                            <option value="受眾表現">受眾表現</option>
                             <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
                         </select>
                         <select id="level2" style="flex:1;"></select>
@@ -173,9 +174,13 @@
                 insight: ["素材方面，${val} ${comp}，反映出目前視覺切點對客群之吸引力。", "分析素材回饋，${val} ${comp}反映出目前素材方向符合市場趨勢。"],
                 action: ["已完成表現較差之素材汰換，並針對${val}之成效反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
             },
-            "客層與受眾表現": {
-                insight: ["分析受眾分佈，${val} ${comp}，顯示目前廣告信號能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
+            "客層表現": {
+                insight: ["分析客層表現，${val} ${comp}，顯示目前廣告能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
                 action: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別之出價權重。", "下週預計監測客層${val}之走勢，並評估是否導入更精細標籤。"]
+            },
+            "受眾表現": {
+                insight: ["分析受眾表現，${val} ${comp}，顯示目前廣告信號能有效觸及目標族群。", "檢視受眾數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
+                action: ["本週已針對受眾${val}之反饋，微調了 ${val} ${comp} 之出價權重。", "下週預計監測受眾${val}之數據走勢，滾動式調整出價幅度。"]
             },
             "搜尋與關鍵字分析": {
                 insight: ["觀察關鍵字表現，${val} ${comp}，反映出核心字組成功攔截精準流量。", "搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中具備競爭力。"],
