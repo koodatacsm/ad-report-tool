@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v31.0 </title>
+    <title>廣告週報生成小工具 v31.0 - 穩定修復版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -17,38 +17,33 @@
         input[type="text"], input[type="date"], select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
         textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
         
-        /* 編輯器工具列樣式 */
-        .toolbar { display: flex; gap: 4px; background: #eee; padding: 4px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; flex-wrap: wrap; }
-        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-size: 12px; border-radius: 2px; font-weight: bold; }
-        .toolbar button:hover { background: #f0f0f0; }
+        /* 編輯器樣式 */
+        .toolbar { display: flex; gap: 4px; background: #eee; padding: 4px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; }
+        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 6px; cursor: pointer; font-size: 11px; border-radius: 2px; }
         .editor { min-height: 80px; border: 1px solid var(--border); padding: 10px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; }
-        .editor:focus { outline: 2px solid var(--g-blue); }
+        .editor:focus { outline: 1px solid var(--g-blue); }
 
         .import-box { background: #fffde7; border: 1px dashed #fbc02d; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
         .platform-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
         .platform-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; color: var(--g-gray); }
-        .platform-item input { margin-right: 4px; width: auto; }
         .metric-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
-        .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; color: var(--g-gray); }
-        .metric-item input { width: auto; margin-right: 6px; }
+        .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
+        .metric-item input { margin-right: 5px; width: auto; }
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
         .custom-note-box { margin: 15px 0; padding: 10px; border: 1px dashed var(--g-blue); border-radius: 6px; background: #f0f7ff; }
         
-        /* 預覽視窗保持 HTML 渲染 */
-        #preview { white-space: pre-wrap; font-size: 13px; line-height: 1.6; color: #3c4043; background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; }
+        #preview { white-space: normal; font-size: 13px; line-height: 1.6; color: #3c4043; background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; overflow-y: auto; }
         
         .btn { background: var(--g-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
         .btn-outline { background: white; color: var(--g-gray); border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; }
         .hidden { display: none; }
         
-        /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
         .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; max-height: 80vh; display: flex; flex-direction: column; }
         .history-list { overflow-y: auto; flex: 1; margin-top: 10px; }
         .history-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: grid; grid-template-columns: 100px 150px 1fr 50px; align-items: center; }
-        .history-item:hover { background-color: #f5f5f5; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -56,7 +51,7 @@
     <header>
         <div>
             <h1>廣告週報生成小工具 v31.0</h1>
-            <span class="update-date">最後更新：2026/01/22 (富文本功能版)</span>
+            <span class="update-date">最後更新：2026/01/22 (富文本穩定版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -118,24 +113,18 @@
                 </div>
 
                 <div class="custom-note-box">
-                    <label style="color:var(--g-blue)">客製化備註 (純文字)</label>
-                    <textarea id="customNote" rows="2" placeholder="備註內容..." oninput="run()"></textarea>
+                    <label style="color:var(--g-blue)">客製化備註</label>
+                    <textarea id="customNote" rows="2" placeholder="其他說明..." oninput="run()"></textarea>
                 </div>
 
                 <div class="builder-box">
                     <label style="color:var(--accent)">🔍 優化建議生成</label>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <select id="level1" style="flex:1;" onchange="updateLevel2()">
-                            <option value="廣告整體方向">廣告整體方向</option>
-                            <option value="素材與版位表現">素材與版位表現</option>
-                            <option value="客層表現">客層表現</option>
-                            <option value="受眾表現">受眾表現</option>
-                            <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
-                        </select>
+                        <select id="level1" style="flex:1;" onchange="updateLevel2()"><option value="廣告整體方向">廣告整體方向</option><option value="素材與版位表現">素材與版位表現</option><option value="客層表現">客層表現</option><option value="受眾表現">受眾表現</option><option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option></select>
                         <select id="level2" style="flex:1;"></select>
                     </div>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <input type="text" id="obsInput" placeholder="描述內容..." style="flex:2;">
+                        <input type="text" id="obsInput" placeholder="描述..." style="flex:2;">
                         <input type="text" id="comp_prev" placeholder="前期" style="flex:0.5;">
                         <input type="text" id="comp_this" placeholder="本期" style="flex:0.5;">
                     </div>
@@ -148,13 +137,7 @@
                 <div class="stage-box">
                     <label>【數據洞察】</label>
                     <div class="toolbar">
-                        <button onclick="format('bold')">B</button>
-                        <button onclick="format('italic')">I</button>
-                        <button onclick="format('underline')">U</button>
-                        <button onclick="format('strikeThrough')">S</button>
-                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none;">
-                        <button onclick="format('insertUnorderedList')">• 清單</button>
-                        <button onclick="format('insertOrderedList')">1. 清單</button>
+                        <button onclick="format('bold')">B</button><button onclick="format('italic')">I</button><button onclick="format('underline')">U</button><input type="color" onchange="format('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="format('insertUnorderedList')">清單</button>
                     </div>
                     <div id="stageInsight" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -162,13 +145,7 @@
                 <div class="stage-box">
                     <label>【下一步行動】</label>
                     <div class="toolbar">
-                        <button onclick="format('bold')">B</button>
-                        <button onclick="format('italic')">I</button>
-                        <button onclick="format('underline')">U</button>
-                        <button onclick="format('strikeThrough')">S</button>
-                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none;">
-                        <button onclick="format('insertUnorderedList')">• 清單</button>
-                        <button onclick="format('insertOrderedList')">1. 清單</button>
+                        <button onclick="format('bold')">B</button><button onclick="format('italic')">I</button><button onclick="format('underline')">U</button><input type="color" onchange="format('foreColor', this.value)" style="width:25px; height:18px;"><button onclick="format('insertUnorderedList')">清單</button>
                     </div>
                     <div id="stageAction" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -182,205 +159,11 @@
                     <button class="btn" onclick="copy()">複製文字</button>
                 </div>
             </div>
-            <div class="content" style="background: #f1f3f4;">
-                <div id="preview"></div>
-            </div>
+            <div class="content" style="background: #f1f3f4;"><div id="preview"></div></div>
         </div>
     </main>
 
-    <div id="historyModal" class="modal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>📜 歷史紀錄</h2>
-                <span class="close" onclick="closeHistory()">&times;</span>
-            </div>
-            <div id="historyList" class="history-list"></div>
-        </div>
-    </div>
+    <div id="historyModal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; align-items:center;"><h2>📜 歷史紀錄</h2><span class="close" onclick="closeHistory()">&times;</span></div><div id="historyList" class="history-list"></div></div></div>
 
     <script>
-        const level2Options = {
-            "廣告整體方向": ["轉換成本", "點擊數", "點擊成本", "點閱率", "花費進度"],
-            "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材表現"],
-            "客層表現": ["互動率", "點擊成本", "轉換數"],
-            "受眾表現": ["互動率", "點擊成本", "轉換數"],
-            "搜尋與關鍵字分析": ["搜尋字詞", "點擊數", "轉換數"]
-        };
-
-        const db = {
-            "廣告整體方向": {
-                insight: ["觀察廣告整體成效，${val} ${comp}，顯示目前帳戶投遞策略能有效維持穩定走勢。", "檢視本週整體數據，${val} ${comp}，反映出市場競價環境之變動。"],
-                action: ["針對目前${val}趨勢，已完成出價參數校正，以穩定長期之獲客成本。", "下週計畫進行深度診斷，並視情況調整出價策略以最大化效益。"]
-            },
-            "素材與版位表現": {
-                insight: ["素材方面，${val} ${comp}，反映出目前視覺切點對客群之吸引力。", "分析素材回饋，${val} ${comp}反映出目前素材方向符合市場趨勢。"],
-                action: ["已完成表現較差之素材汰換，並針對${val}之成效反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
-            },
-            "客層表現": {
-                insight: ["分析客層表現，${val} ${comp}，顯示目前廣告能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特蹤。"],
-                action: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別之出價權重。", "下週預計監測客層${val}之走勢，並評估是否導入更精細標籤。"]
-            },
-            "受眾表現": {
-                insight: ["分析受眾表現，${val} ${comp}，顯示目前廣告信號能有效觸及目標族群。", "檢視受眾數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
-                action: ["本週已針對受眾${val}之反饋，微調了 ${val} ${comp} 之出價權重。", "下週預計監測受眾${val}之數據走勢，滾動式調整出價幅度。"]
-            },
-            "搜尋與關鍵字分析": {
-                insight: ["觀察關鍵字表現，${val} ${comp}，反映出核心字組成功攔截精準流量。", "搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中具備競爭力。"],
-                action: ["針對關鍵字${val}之現狀，已執行字詞比對模式優化並排除雜訊。", "下週計畫針對「${val}」之搜量趨勢觀測，並根據反饋調整出價。"]
-            }
-        };
-
-        // 富文本格式化指令
-        function format(cmd, value = null) {
-            document.execCommand(cmd, false, value);
-            run();
-        }
-
-        function updateLevel2() {
-            const l1 = document.getElementById('level1').value;
-            const l2 = document.getElementById('level2');
-            l2.innerHTML = "";
-            level2Options[l1].forEach(opt => l2.add(new Option(opt, opt)));
-        }
-
-        function formatCompVal(val, metric) {
-            if (!val) return "";
-            let clean = val.replace(/[$,%\s]/g, '').replace('NT', '');
-            let num = parseFloat(clean);
-            if (isNaN(num)) return val;
-            let formatted = new Intl.NumberFormat('zh-TW').format(num);
-            if (["成本", "花費", "CPC", "CPA"].some(k => metric.includes(k))) return "$" + formatted;
-            if (["率", "進度", "CTR"].some(k => metric.includes(k))) return formatted + "%";
-            return formatted;
-        }
-
-        function addStage(type) {
-            const l1 = document.getElementById('level1').value;
-            const input = document.getElementById('obsInput').value;
-            if (!input) return;
-            const curVal = document.getElementById('comp_this').value;
-            const preVal = document.getElementById('comp_prev').value;
-            let compStr = (curVal && preVal) ? `(${formatCompVal(preVal, '數字')} → ${formatCompVal(curVal, '數字')})` : "";
-            
-            const pool = db[l1][type] || db[l1]["insight"];
-            const template = pool[Math.floor(Math.random() * pool.length)];
-            const text = template.replace('${val}', input).replace('${comp}', compStr);
-            
-            const target = document.getElementById(type === 'insight' ? 'stageInsight' : 'stageAction');
-            const currentContent = target.innerHTML;
-            target.innerHTML = currentContent + (currentContent ? '<br>' : '') + text;
-            
-            document.getElementById('obsInput').value = ""; 
-            document.getElementById('comp_this').value = ""; 
-            document.getElementById('comp_prev').value = ""; 
-            run();
-        }
-
-        function parseBulkData() {
-            const raw = document.getElementById('bulkPaste').value.trim();
-            if (!raw) return;
-            const lines = raw.split(/\n/).map(line => line.split(/\t/));
-            let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
-            const h = data[0], v = data[data.length - 1];
-            const m = { 
-                imp: ["曝光", "展示"], click: ["點擊"], conv: ["轉換", "成果"], 
-                ctr: ["CTR", "點閱率"], cpc: ["CPC", "單次點擊"], 
-                cpa: ["CPA", "轉換成本"], spend: ["花費", "費用"], progress: ["進度"]
-            };
-            h.forEach((header, idx) => {
-                for (let k in m) {
-                    if (m[k].some(key => header.includes(key))) {
-                        let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '').replace('NT', '') : "";
-                        if (k === 'progress') { document.getElementById('v-progress').value = val; }
-                        else if (document.getElementById('v-' + k)) {
-                            document.getElementById('v-' + k).value = val;
-                            document.querySelector(`.m-check[value="${k}"]`).checked = true;
-                        }
-                    }
-                }
-            });
-            toggleInputs(); run();
-        }
-
-        function toggleInputs() {
-            document.querySelectorAll('.m-check').forEach(ck => {
-                const div = document.getElementById('div-' + ck.value);
-                ck.checked ? div.classList.remove('hidden') : div.classList.add('hidden');
-            });
-            run();
-        }
-
-        function run() {
-            const get = (id) => document.getElementById(id).value;
-            const getHtml = (id) => document.getElementById(id).innerHTML;
-            
-            const s = get('sDate').replace(/-/g, '/') || '__/__/__', e = get('eDate').replace(/-/g, '/') || '__/__/__';
-            let platforms = Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value);
-            const platformText = platforms.length > 0 ? platforms.join(' + ') : '[平台]';
-            
-            let perf = [];
-            const labels = {imp:"曝光", click:"點擊", conv:"轉換", ctr:"CTR", cpc:"CPC", cpa:"CPA", spend:"花費"};
-            document.querySelectorAll('.m-check:checked').forEach(ck => {
-                perf.push(`${labels[ck.value]} ${formatCompVal(get('v-' + ck.value), labels[ck.value])}`);
-            });
-            
-            const progress = get('v-progress') ? `目前花費進度：${get('v-progress')}%\n` : '';
-            const note = get('customNote') ? `備註：${get('customNote')}\n` : '';
-
-            // 預覽視窗需要用 innerHTML 渲染富文本，但 template 文字需要換行符號
-            const previewArea = document.getElementById('preview');
-            const contentHtml = `Dear all,<br><br>` +
-                `附件為 ${get('client') || '[客戶]'} ${platformText} 廣告報表，請查閱。<br><br>` +
-                `【帳戶狀況說明】<br>` +
-                `廣告期間：${s} - ${e}<br>` +
-                `廣告成效：${perf.join('、')}<br>` +
-                `${progress.replace('\n', '<br>')}${note.replace('\n', '<br>')}<br>` +
-                `【優化分析與建議】<br>` +
-                `數據洞察：<br>` +
-                `${getHtml('stageInsight') || '尚無洞察內容'}<br><br>` +
-                `下一步行動：<br>` +
-                `${getHtml('stageAction') || '尚無行動規劃'}<br><br>` +
-                `Best regards,`;
-            
-            previewArea.innerHTML = contentHtml;
-        }
-
-        function copy() {
-            const preview = document.getElementById('preview');
-            const range = document.createRange();
-            range.selectNode(preview);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            try {
-                document.execCommand('copy');
-                alert('報表文字（含格式）已複製！可直接貼到 Email、Word 或 通訊軟體。');
-            } catch (err) {
-                alert('複製失敗，請手動全選預覽區文字。');
-            }
-            window.getSelection().removeAllRanges();
-        }
-
-        function saveToHistory() {
-            const client = document.getElementById('client').value;
-            if (!client) return alert('請先輸入客戶名稱！');
-            const historyItem = { 
-                id: Date.now(), 
-                timestamp: new Date().toLocaleString(), 
-                client, 
-                insight: document.getElementById('stageInsight').innerHTML, 
-                action: document.getElementById('stageAction').innerHTML 
-            };
-            let history = JSON.parse(localStorage.getItem('tpl_v31_history') || '[]');
-            history.unshift(historyItem); 
-            localStorage.setItem('tpl_v31_history', JSON.stringify(history));
-            alert('✅ 報表已封存！');
-        }
-
-        function openHistory() {
-            const history = JSON.parse(localStorage.getItem('tpl_v31_history') || '[]');
-            const list = document.getElementById('historyList'); 
-            list.innerHTML = '';
-            if (history.length === 0) { list.innerHTML = '<div style="padding:20px; text-align:center;">無歷史紀錄</div>'; }
-            history.forEach(item => {
-                const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div>${item.timestamp.split(' ')[0]}</div><div>${item.client}</div><div>紀錄內容...</div>
+        const level2Options = { "廣告整體方向": ["轉換成本", "點擊數", "點擊成本", "點閱率", "花費進度"], "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材
