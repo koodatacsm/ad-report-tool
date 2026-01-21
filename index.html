@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v29.0</title>
+    <title>廣告週報生成小工具 v30.0 - 簡約版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -30,9 +30,6 @@
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
         .btn-outline { background: white; color: var(--g-gray); border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; }
         .hidden { display: none; }
-        .guide-box { font-size: 11px; color: #5f6368; background: rgba(255,255,255,0.6); padding: 8px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ddd; line-height: 1.5; }
-        .guide-highlight { color: #d93025; font-weight: bold; }
-        .guide-arrow { color: var(--g-blue); font-weight: bold; margin: 0 4px; }
         
         /* Modal Styles */
         .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
@@ -46,345 +43,35 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v29.0</h1>
-            <span class="update-date">最後更新日期：2026/01/22 (新增客製欄位)</span>
+            <h1>廣告週報生成小工具 v30.0</h1>
+            <span class="update-date">最後更新：2026/01/22 (簡約洞察版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
-            <button class="btn btn-outline" onclick="resetDefault()">🔄 重置 (Default)</button>
+            <button class="btn btn-outline" onclick="resetDefault()">🔄 重置</button>
             <select id="templateLoader" style="width: 150px;" onchange="loadTemplate()"><option value="">選擇客戶範本</option></select>
-            <button class="btn btn-outline" onclick="exportTemplates()">🔗 匯出設定</button>
-            <button class="btn btn-outline" onclick="importTemplates()">📥 匯入設定</button>
+            <button class="btn btn-outline" onclick="exportTemplates()">🔗 匯出</button>
+            <button class="btn btn-outline" onclick="importTemplates()">📥 匯入</button>
         </div>
     </header>
     <main>
         <div class="card">
-            <div class="card-header">數據匯入與策略生成 <button class="btn" style="background:var(--success)" onclick="saveTemplate()">💾 儲存為客戶範本</button></div>
+            <div class="card-header">數據匯入與策略生成 <button class="btn" style="background:var(--success)" onclick="saveTemplate()">💾 儲存範本</button></div>
             <div class="content">
                 <div class="import-box">
                     <label>⚡ 數據快速解析器 (貼入報表總計列)</label>
-                    <textarea id="bulkPaste" rows="2" placeholder="貼入數據後，下方欄位將自動填入並勾選..." oninput="parseBulkData()"></textarea>
+                    <textarea id="bulkPaste" rows="2" placeholder="貼入數據後自動填入欄位..." oninput="parseBulkData()"></textarea>
                 </div>
-                <div style="margin-bottom:10px;">
-                    <label>客戶名稱 (儲存範本時將以此為名)</label>
-                    <input type="text" id="client" value="" placeholder="輸入客戶名稱..." oninput="run()">
+                
+                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div><label>客戶名稱</label><input type="text" id="client" placeholder="輸入客戶名稱..." oninput="run()"></div>
+                    <div><label style="color:var(--danger)">🔥 花費進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
                 </div>
                 
                 <div style="margin-bottom:10px;">
-                    <label>投放平台 (可複選)</label>
+                    <label>投放平台</label>
                     <div class="platform-selector">
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google PMax" onchange="run()"> Google PMax</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google GDN" onchange="run()"> Google GDN</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google KWS" onchange="run()"> Google KWS</label>
-                        <label class="platform-item"><input type="checkbox" class="p-check" value="Meta" onchange="run()"> Meta</label>
-                        <label class="platform-item"><input type="checkbox" class="p-check" value="LINE" onchange="run()"> LINE</label>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div style="flex:1;"><label>開始日期</label><input type="date" id="sDate" onchange="run()"></div>
-                    <div style="flex:1;"><label>結束日期</label><input type="date" id="eDate" onchange="run()"></div>
-                </div>
-                
-                <label style="color:var(--g-blue)">數據總覽欄位 (自動勾選)</label>
-                <div class="metric-selector">
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="imp" onchange="toggleInputs()"> 曝光次數</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="click" onchange="toggleInputs()"> 點擊次數</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="conv" onchange="toggleInputs()"> 轉換數</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="ctr" onchange="toggleInputs()"> CTR</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="cpc" onchange="toggleInputs()"> 點擊成本 (CPC)</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="cpa" onchange="toggleInputs()"> 轉換成本</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="spend" onchange="toggleInputs()"> 花費</label>
-                    <label class="metric-item"><input type="checkbox" class="m-check" value="progress" onchange="toggleInputs()"> 花費進度</label>
-                </div>
-
-                <div id="inputGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
-                    <div id="div-imp" class="input-group hidden"><label>曝光</label><input type="text" id="v-imp" oninput="autoCheck('imp'); run()"></div>
-                    <div id="div-click" class="input-group hidden"><label>點擊</label><input type="text" id="v-click" oninput="autoCheck('click'); run()"></div>
-                    <div id="div-conv" class="input-group hidden"><label>轉換</label><input type="text" id="v-conv" oninput="autoCheck('conv'); run()"></div>
-                    <div id="div-ctr" class="input-group hidden"><label>CTR%</label><input type="text" id="v-ctr" oninput="autoCheck('ctr'); run()"></div>
-                    <div id="div-cpc" class="input-group hidden"><label>CPC</label><input type="text" id="v-cpc" oninput="autoCheck('cpc'); run()"></div>
-                    <div id="div-cpa" class="input-group hidden"><label>CPA</label><input type="text" id="v-cpa" oninput="autoCheck('cpa'); run()"></div>
-                    <div id="div-spend" class="input-group hidden"><label>花費</label><input type="text" id="v-spend" oninput="autoCheck('spend'); run()"></div>
-                    <div id="div-progress" class="input-group hidden"><label>進度%</label><input type="text" id="v-progress" oninput="autoCheck('progress'); run()"></div>
-                </div>
-
-                <div class="custom-note-box">
-                    <label style="color:var(--g-blue); margin-bottom:5px;">客製化備註 (自由欄位)</label>
-                    <textarea id="customNote" rows="3" placeholder="在此輸入針對該客戶的客製化說明，此內容會隨範本儲存 (例如：本週含特殊節慶活動...)" oninput="run()"></textarea>
-                </div>
-
-                <div class="builder-box">
-                    <label style="color:var(--accent)">🔍 優化分析生成器</label>
-                    
-                    <div class="guide-box">
-                        <strong>💡 填寫指南：</strong><br>
-                        1. 選擇分類 <b>[搜尋與關鍵字]</b> + 指標 <b>[點擊數]</b><br>
-                        2. 輸入完整描述： <span class="guide-highlight">品牌字點擊大幅成長，顯示品牌聲量提升</span><br>
-                        3. 輸出結果： <span class="guide-arrow">→</span> 觀察關鍵字表現，<b>品牌字點擊大幅成長，顯示品牌聲量提升</b> (100→150)，反映出核心字組策略成功...
-                    </div>
-
-                    <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <select id="level1" style="flex:1;" onchange="updateLevel2()">
-                            <option value="廣告整體方向">廣告整體方向</option>
-                            <option value="素材與版位表現">素材與版位表現</option>
-                            <option value="客層與受眾表現">客層與受眾表現</option>
-                            <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
-                            <option value="競品與外部環境">競品與外部環境</option>
-                        </select>
-                        <select id="level2" style="flex:1;">
-                            </select>
-                    </div>
-                    
-                    <div style="display:flex; gap:8px; margin-bottom:8px; background:rgba(255,255,255,0.5); padding:8px; border-radius:4px;">
-                        <div style="flex:1;"><label style="font-size:9px;">前期數值</label><input type="text" id="comp_prev" placeholder="例如: 5.41"></div>
-                        <div style="flex:1;"><label style="font-size:9px;">本期數值</label><input type="text" id="comp_this" placeholder="例如: 5.67"></div>
-                    </div>
-
-                    <input type="text" id="obsInput" placeholder="輸入完整描述 (如：A素材點閱率上升，吸引大量訪客)..." style="width:100%; margin-bottom:8px;">
-                    
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn btn-add" onclick="addStage('found')">加到本週發現</button>
-                        <button class="btn btn-add" style="background:#ef6c00" onclick="addStage('executed')">加到本週已執行</button>
-                        <button class="btn btn-add" style="background:#34a853" onclick="addStage('nextDirection')">加到下週調整方向</button>
-                    </div>
-                </div>
-                <div class="stage-box"><label>【本週發現】</label><textarea id="stageFound" rows="2" oninput="run()"></textarea></div>
-                <div class="stage-box"><label>【本週已執行】</label><textarea id="stageExecuted" rows="2" oninput="run()"></textarea></div>
-                <div class="stage-box"><label>【下週調整方向】</label><textarea id="stageNextDirection" rows="2" oninput="run()"></textarea></div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">最終報表預覽 
-                <div>
-                    <button class="btn" style="background:var(--warning); color:black;" onclick="saveToHistory()">📥 封存本週報表</button>
-                    <button class="btn" onclick="copy()">複製報表文字</button>
-                </div>
-            </div>
-            <div class="content" style="background: #f1f3f4;"><div id="preview"></div></div>
-        </div>
-    </main>
-
-    <div id="historyModal" class="modal">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>📜 歷史週報紀錄 (本機端)</h2>
-                <span class="close" onclick="closeHistory()">&times;</span>
-            </div>
-            <div id="historyList" class="history-list"></div>
-        </div>
-    </div>
-
-    <script>
-        const level2Options = {
-            "廣告整體方向": ["轉換成本", "點擊數", "點擊成本", "點閱率", "曝光比重", "花費進度"],
-            "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材表現"],
-            "客層與受眾表現": ["互動率", "點擊成本", "轉換數", "點閱率"],
-            "搜尋與關鍵字分析": ["搜尋字詞", "點擊數", "點擊成本", "點閱率", "轉換數"],
-            "競品與外部環境": ["競價熱度", "曝光比重", "市場需求", "節慶因素"]
-        };
-
-        const db = {
-            "廣告整體方向": {
-                found: ["觀察廣告整體成效，${val} ${comp}，顯示目前帳戶投遞策略能有效維持穩定走勢。", "檢視本週整體數據，${val} ${comp}，反映出市場競價環境之變動對成效產生些許波動。", "整體表現方面，${val} ${comp}，顯示出價策略與預算分配目前運作符合預期。", "分析本期數據，${val} ${comp}，主要受惠於流量品質優化與核心受眾之穩定表現。", "觀察整體成效，${val} ${comp}，顯示廣告在核心受眾群落中具備穩定的觸及與吸引力。"],
-                executed: ["針對整體成效${val}之狀況，本週已完成預算分配與出價權重之微調，優化投放效益。", "因應數據波動，本週已執行滾動式調整，將預算集中於高效時段與版位以穩定整體成效。", "針對目前${val}趨勢，本週已完成相關出價參數校正，以穩定長期之獲客成本。", "為提升整體轉換效益，本週已重新檢視各廣告活動之預算配比並完成調整。"],
-                nextDirection: ["下週調整方向將針對整體${val}之趨勢持續監控，並評估是否調整廣告活動信號。", "預計下週加強對整體成效走勢之觀察，視數據反饋動態配置預算佔比。", "後續將密切留意${val}之數據變化，並根據轉換成效評估啟動備選之投放方案。", "下週計畫針對整體表現${val}之狀況進行深度診斷，並視情況調整出價策略以最大化效益。"]
-            },
-            "素材與版位表現": {
-                found: ["素材表現方面，${val} ${comp}，反映出目前視覺切點對目標客群之吸引力狀況。", "觀察本週素材數據，以${val} ${comp}表現最為亮眼，成功引發受眾共鳴並帶動點擊。", "檢視圖片與文案成效，${val} ${comp}，顯示受眾對於該類型溝通訴求具有較高興趣度。", "分析素材回饋，${val} ${comp}反映出目前素材投放週期與視覺設計方向符合市場趨勢。", "觀察版位表現，${val} ${comp}，顯示特定版位之互動率優於平均，為本週主要流量來源。"],
-                executed: ["針對素材表現${val}之狀況，本週已完成廣告組合優化，保留高效視覺內容持續投遞。", "已完成點閱表現較差之素材汰換作業，並針對${val}之成效反饋加強推廣力道。", "針對素材呈現${val}之疲乏跡象，本週已協助更新文案切點並加入新版圖片以維持廣告新鮮度。", "本週已針對表現優異之素材進行預算加碼，並暫停成效不佳之版位以節省成本。"],
-                nextDirection: ["下週調整方向預計進行素材更新，針對「${val}」之趨勢規劃新版視覺切點。", "下週預計測試新素材組件，重點將放在強化${val}之表現，以提升整體點閱吸引力。", "後續將針對素材成效進行延伸設計，計畫將表現優異之「${val}」風格擴展至其他廣告群組。", "下週計畫針對版位效益進行評估，視${val}之變化調整版位出價設定。"]
-            },
-            "客層與受眾表現": {
-                found: ["客層表現方面，${val} ${comp}，顯示特定受眾群體之轉換意願與互動表現。", "分析受眾分佈狀況，${val} ${comp}，反映出主力核心客群之受眾特徵與數據走勢吻合。", "觀察年齡與性別數據，${val} ${comp}，顯示目前廣告信號能有效觸及具潛力的目標族群。", "檢視受眾數據，${val} ${comp}，顯示該興趣族群對於本檔活動之參與度高於平均。", "分析客群輪廓，${val} ${comp}，反映出新開發之受眾標籤具備良好的開發潛力。"],
-                executed: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別級距之出價增益權重。", "針對互動率不佳之客群本週已執行減價動作，並將預算集中於成效佳之「${val}」受眾。", "因應客層${val}之變化，本週已重新梳理受眾信號標籤，聚焦高品質進站訪客。", "本週已針對${val}之高潛力受眾進行獨立設定，以觀察其長期轉換價值。"],
-                nextDirection: ["下週調整方向預計監測客層${val}之走勢，並視成效評估是否導入更精細之標籤過濾。", "下週計畫針對${val}之受眾特徵微調文案，評估是否能進一步帶動該族群之轉化意願。", "後續將針對受眾成效進行診斷，評估是否擴大類似受眾規模以獲得更多潛在流量。", "下週預計針對表現優異之${val}客群規劃專屬素材，以深化品牌溝通。"]
-            },
-            "搜尋與關鍵字分析": {
-                found: ["搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中仍具備一定競爭力。", "觀察關鍵字表現，${val} ${comp}，反映出核心字組之策略成功攔截精準流量。", "分析本週搜尋字詞，訪客搜尋意圖與產品高度吻合，${val} ${comp}。", "檢視搜尋報告，${val} ${comp}反映出目前品牌核心字與產品需求字之穩定佔比。", "觀察字詞趨勢，${val} ${comp}，顯示市場對於特定議題之搜尋熱度有所變化。"],
-                executed: ["針對關鍵字${val}之現狀，本週已執行字詞比對模式優化並排除不相關之流量雜訊。", "已針對搜尋字詞中「${val}」之狀況進行過濾，確保預算集中於高效字組。", "因應搜尋變化趨勢，本週已針對關鍵字清單進行擴充與否定調整，旨在提升流量純度。", "本週已針對高轉換潛力之「${val}」字組提高出價，以爭取首頁頂端排名。"],
-                nextDirection: ["下週調整方向計畫針對「${val}」之搜量趨勢持續觀測，並根據反饋進行出價調整。", "下週預計評估是否新增與${val}相關之長尾關鍵字，以網羅更多潛在進站機會。", "後續將針對關鍵字競價熱度進行診斷，計畫針對表現佳之「${val}」加強版位保護。", "下週計畫針對${val}之字詞表現進行深度分析，並視競品狀況調整預算配比。"]
-            },
-            "競品與外部環境": {
-                found: ["受外部環境影響，${val} ${comp}，反映出市場競價態勢與需求熱度之變動。", "觀察競品動態，${val} ${comp}，競爭對手之投放力道對我方成效產生些許影響。", "考量節慶檔期因素，${val} ${comp}，顯示市場整體流量搜量在此期間呈現特定規律。", "分析市場狀況，${val} ${comp}，顯示產業整體需求與競價成本呈現連動變化。"],
-                executed: ["針對外部競價${val}之衝擊，本週已協助調配日預算走速以維持曝光佔比穩定。", "因應市場需求波動，本週已協助調整投放時段與出價模型，確保競爭優勢。", "針對市場${val}之現狀，本週已執行對應之備選優化方案，致力於穩定長期獲客效益。", "面對競品${val}之策略，本週已針對核心關鍵字進行防禦性出價調整。"],
-                nextDirection: ["下週調整方向計畫規劃對應方案，以因應市場${val}所帶來之潛在波動風險。", "下週預計密切關注競品${val}之動向，並隨時準備調整預算佈局以捍衛版位。", "後續將針對節慶後${val}之市場回調狀況進行評估，並回歸常態之投遞邏輯。", "下週計畫針對外部環境${val}之變化進行策略沙盤推演，以確保廣告成效之穩定性。"]
-            }
-        };
-
-        function updateLevel2() {
-            const l1 = document.getElementById('level1').value;
-            const l2 = document.getElementById('level2');
-            l2.innerHTML = "";
-            level2Options[l1].forEach(opt => l2.add(new Option(opt, opt)));
-        }
-
-        function formatCompVal(val, metric) {
-            if (!val) return "";
-            let clean = val.replace(/[$,%\s]/g, '').replace('NT', '');
-            let num = parseFloat(clean);
-            if (isNaN(num)) return val;
-            let formatted = new Intl.NumberFormat('zh-TW').format(num);
-            if (["成本", "花費", "費用", "CPC", "CPA", "單次點擊出價"].some(k => metric.includes(k))) return "$" + formatted;
-            if (["點閱率", "進度", "CTR", "互動率", "花費進度"].some(k => metric.includes(k))) return formatted + "%";
-            return formatted;
-        }
-
-        function autoCheck(key) {
-            const ck = document.querySelector(`.m-check[value="${key}"]`);
-            if (ck && !ck.checked) { ck.checked = true; toggleInputs(); }
-        }
-
-        function addStage(s) {
-            const l1 = document.getElementById('level1').value, input = document.getElementById('obsInput').value;
-            if (!input) return;
-            const curVal = document.getElementById('comp_this').value, preVal = document.getElementById('comp_prev').value;
-            let compStr = "";
-            if (curVal && preVal) {
-                const l2 = document.getElementById('level2').value;
-                compStr = `(${formatCompVal(preVal, l2)} → ${formatCompVal(curVal, l2)})`;
-            }
-            const pool = db[l1][s] || db[l1]["found"];
-            const template = pool[Math.floor(Math.random() * pool.length)];
-            const text = template.replace('${val}', input).replace('${comp}', compStr);
-            const targetId = 'stage' + s.charAt(0).toUpperCase() + s.slice(1);
-            document.getElementById(targetId).value += (document.getElementById(targetId).value ? '\n' : '') + text;
-            document.getElementById('obsInput').value = ""; document.getElementById('comp_this').value = ""; document.getElementById('comp_prev').value = ""; run();
-        }
-
-        function parseBulkData() {
-            const raw = document.getElementById('bulkPaste').value.trim();
-            if (!raw) return;
-            const lines = raw.split(/\n/).map(line => line.split(/\t/));
-            let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
-            const h = data[0], v = data[data.length - 1];
-            const m = { 
-                imp: { keys: ["曝光", "展示"], exclude: ["成本", "比重"] },
-                click: { keys: ["點擊", "連結點擊"], exclude: ["成本", "出價", "率", "單次"] },
-                conv: { keys: ["轉換", "成果", "名單"], exclude: ["成本", "率", "價值"] },
-                ctr: { keys: ["CTR", "點閱率"], exclude: [] },
-                cpc: { keys: ["單次點擊出價", "平均單次點擊出價", "CPC"], exclude: [] },
-                cpa: { keys: ["CPA", "轉換成本"], exclude: [] },
-                spend: { keys: ["花費", "費用"], exclude: ["成本", "出價"] },
-                progress: { keys: ["進度", "花費進度"], exclude: [] }
-            };
-            document.querySelectorAll('.m-check').forEach(ck => ck.checked = false);
-            h.forEach((header, idx) => {
-                for (let k in m) {
-                    if (m[k].keys.some(key => header.includes(key)) && !m[k].exclude.some(ex => header.includes(ex))) {
-                        let val = v[idx];
-                        if (val) {
-                            document.getElementById('v-' + k).value = val.replace(/[$,%\s]/g, '').replace('NT', '');
-                            document.querySelector(`.m-check[value="${k}"]`).checked = true;
-                        }
-                    }
-                }
-            });
-            toggleInputs(); run();
-        }
-
-        function toggleInputs() {
-            document.querySelectorAll('.m-check').forEach(ck => {
-                const div = document.getElementById('div-' + ck.value);
-                ck.checked ? div.classList.remove('hidden') : div.classList.add('hidden');
-            });
-            run();
-        }
-
-        function run() {
-            const get = (id) => document.getElementById(id).value;
-            const s = get('sDate').replace(/-/g, '/') || '__/__/__', e = get('eDate').replace(/-/g, '/') || '__/__/__';
-            let platforms = [];
-            document.querySelectorAll('.p-check:checked').forEach(p => platforms.push(p.value));
-            const platformText = platforms.length > 0 ? platforms.join(' + ') : '[平台]';
-            let perf = [];
-            const labels = {imp:"曝光次數", click:"點擊次數", conv:"轉換數", ctr:"CTR", cpc:"點擊成本", cpa:"轉換成本", spend:"花費", progress:"花費進度"};
-            document.querySelectorAll('.m-check:checked').forEach(ck => {
-                perf.push(`${labels[ck.value]} ${formatCompVal(get('v-' + ck.value), labels[ck.value])}`);
-            });
-            
-            // v29: Get custom note
-            const note = get('customNote') ? `\n${get('customNote')}\n` : '';
-
-            document.getElementById('preview').innerText = `Dear all,\n\n附件為 ${get('client') || '[客戶]'} ${platformText} 廣告報表，請查閱，謝謝。\n\n【帳戶狀況說明】\n廣告成效走期 ${s} - ${e}\n廣告成效：${perf.join('、')}。\n${note}\n【帳戶優化說明】\n本週發現：\n${get('stageFound') || '無'}\n\n本週已執行：\n${get('stageExecuted') || '無'}\n\n下週調整方向：\n${get('stageNextDirection') || '無'}\n\nBest regards,`;
-        }
-
-        function saveToHistory() {
-            const client = document.getElementById('client').value;
-            if (!client) return alert('請先輸入客戶名稱才能封存！');
-            const historyItem = { id: Date.now(), timestamp: new Date().toLocaleString(), client, platform: Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value), dateRange: { start: document.getElementById('sDate').value, end: document.getElementById('eDate').value }, metrics: {}, stages: { found: document.getElementById('stageFound').value, executed: document.getElementById('stageExecuted').value, next: document.getElementById('stageNextDirection').value }, customNote: document.getElementById('customNote').value };
-            document.querySelectorAll('.m-check:checked').forEach(ck => { historyItem.metrics[ck.value] = document.getElementById('v-' + ck.value).value; });
-            let history = JSON.parse(localStorage.getItem('tpl_v27_history') || '[]');
-            history.unshift(historyItem); localStorage.setItem('tpl_v27_history', JSON.stringify(history));
-            alert('✅ 報表已成功封存！');
-        }
-
-        function openHistory() {
-            const history = JSON.parse(localStorage.getItem('tpl_v27_history') || '[]');
-            const list = document.getElementById('historyList'); list.innerHTML = '';
-            if (history.length === 0) { list.innerHTML = '<div style="padding:20px; text-align:center;">目前沒有歷史紀錄</div>'; } 
-            else { history.forEach(item => {
-                const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div>${item.timestamp.split(' ')[0]}</div><div style="font-weight:bold;">${item.client}</div><div>${item.platform.join('+')}</div><button class="btn btn-outline" onclick="loadFromHistory(${item.id})">載入</button>`;
-                list.appendChild(div);
-            }); }
-            document.getElementById('historyModal').style.display = 'block';
-        }
-
-        function closeHistory() { document.getElementById('historyModal').style.display = 'none'; }
-
-        function loadFromHistory(id) {
-            const history = JSON.parse(localStorage.getItem('tpl_v27_history') || '[]');
-            const item = history.find(i => i.id === id); if (!item) return;
-            document.getElementById('client').value = item.client; document.getElementById('sDate').value = item.dateRange.start; document.getElementById('eDate').value = item.dateRange.end;
-            document.getElementById('stageFound').value = item.stages.found; document.getElementById('stageExecuted').value = item.stages.executed; document.getElementById('stageNextDirection').value = item.stages.next;
-            if(item.customNote) document.getElementById('customNote').value = item.customNote;
-            document.querySelectorAll('.p-check').forEach(ck => ck.checked = item.platform.includes(ck.value));
-            document.querySelectorAll('.m-check').forEach(ck => ck.checked = false);
-            for (let key in item.metrics) { if (document.getElementById('v-' + key)) { document.getElementById('v-' + key).value = item.metrics[key]; document.querySelector(`.m-check[value="${key}"]`).checked = true; } }
-            toggleInputs(); run(); closeHistory(); alert('已載入歷史報表！');
-        }
-
-        function saveTemplate() {
-            const c = document.getElementById('client').value; if (!c) return alert('請輸入客戶名稱');
-            const checks = Array.from(document.querySelectorAll('.m-check:checked')).map(ck => ck.value);
-            const platforms = Array.from(document.querySelectorAll('.p-check:checked')).map(ck => ck.value);
-            const customNote = document.getElementById('customNote').value;
-            localStorage.setItem('tpl_v28_' + c, JSON.stringify({ platforms, checks, customNote }));
-            updateLoader(); alert('範本已儲存為：' + c);
-        }
-        function updateLoader() {
-            const l = document.getElementById('templateLoader'); l.innerHTML = '<option value="">選擇客戶範本</option>';
-            Object.keys(localStorage).filter(k => k.startsWith('tpl_v28_')).forEach(k => l.add(new Option(k.replace('tpl_v28_',''), k.replace('tpl_v28_',''))));
-        }
-        function loadTemplate() {
-            const c = document.getElementById('templateLoader').value; if (!c) return;
-            const d = JSON.parse(localStorage.getItem('tpl_v28_'+c));
-            document.getElementById('client').value = c; 
-            if(d.customNote) document.getElementById('customNote').value = d.customNote;
-            document.querySelectorAll('.p-check').forEach(ck => ck.checked = d.platforms.includes(ck.value));
-            document.querySelectorAll('.m-check').forEach(ck => ck.checked = d.checks.includes(ck.value));
-            toggleInputs(); run();
-        }
-        function resetDefault() {
-            if(!confirm('確定要重置所有欄位嗎？')) return;
-            document.getElementById('client').value = '';
-            document.getElementById('sDate').value = '';
-            document.getElementById('eDate').value = '';
-            document.getElementById('stageFound').value = '';
-            document.getElementById('stageExecuted').value = '';
-            document.getElementById('stageNextDirection').value = '';
-            document.getElementById('customNote').value = '';
-            document.getElementById('bulkPaste').value = '';
-            document.querySelectorAll('.p-check').forEach(ck => ck.checked = false);
-            document.querySelectorAll('.m-check').forEach(ck => ck.checked = false);
-            document.querySelectorAll('input[id^="v-"]').forEach(el => el.value = '');
-            toggleInputs(); run();
-        }
-        function copy() { navigator.clipboard.writeText(document.getElementById('preview').innerText); alert('報表已複製！'); }
-        function exportTemplates() { prompt("複製代碼分享：", JSON.stringify(Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('tpl_v28_')).map(k => [k, localStorage.getItem(k)])))); }
-        function importTemplates() { const j = prompt("貼入代碼："); if (j) { const d = JSON.parse(j); Object.keys(d).forEach(k => localStorage.setItem(k, d[k])); updateLoader(); alert('匯入成功'); run(); }}
-        window.onload = () => { updateLevel2(); updateLoader(); run(); };
-    </script>
-</body>
-</html>
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="Meta" onchange="
