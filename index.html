@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.2 - 穩定修復版</title>
+    <title>廣告週報生成小工具 v32.3 - 完整功能版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -16,20 +16,25 @@
         label { display: block; font-size: 11px; color: var(--g-gray); margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
         input[type="text"], input[type="date"], textarea, select { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
         
-        .toolbar { display: flex; gap: 4px; background: #eee; padding: 4px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; }
-        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .editor { min-height: 80px; border: 1px solid var(--border); padding: 10px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; line-height: 1.5; }
+        /* 富文本編輯器樣式 */
+        .toolbar { display: flex; gap: 4px; background: #eee; padding: 6px; border: 1px solid var(--border); border-bottom: none; border-radius: 4px 4px 0 0; align-items: center; }
+        .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: bold; border-radius: 3px; }
+        .toolbar button:hover { background: #f0f0f0; }
+        .editor { min-height: 100px; border: 1px solid var(--border); padding: 12px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; line-height: 1.6; }
         
         .import-box { background: #fffde7; border: 1px dashed #fbc02d; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
         .platform-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
         .platform-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
+        .platform-item input { margin-right: 4px; width: auto; }
+
         .metric-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; }
         .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
         .metric-item input { width: auto; margin-right: 6px; }
+        
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
         
-        #preview { white-space: normal; font-size: 13px; line-height: 1.7; color: #3c4043; background: white; padding: 20px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; overflow-y: auto; }
+        #preview { white-space: normal; font-size: 13px; line-height: 1.7; color: #3c4043; background: white; padding: 24px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; overflow-y: auto; }
         
         .btn { background: var(--g-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
@@ -46,8 +51,8 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v32.2</h1>
-            <span class="update-date">最後更新：2026/01/22 (修復預覽版)</span>
+            <h1>廣告週報生成小工具 v32.3</h1>
+            <span class="update-date">最後更新：2026/01/22 (完整功能修復版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -75,6 +80,9 @@
                     <label>投放平台</label>
                     <div class="platform-selector">
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google PMax" onchange="run()"> Google PMax</label>
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="Google KWS" onchange="run()"> Google KWS</label>
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="Google GDN" onchange="run()"> Google GDN</label>
+                        <label class="platform-item"><input type="checkbox" class="p-check" value="Google DGC" onchange="run()"> Google DGC</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Meta" onchange="run()"> Meta</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="LINE" onchange="run()"> LINE</label>
                     </div>
@@ -107,14 +115,13 @@
                 <div class="builder-box">
                     <label style="color:var(--accent)">🔍 優化建議生成</label>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <select id="level1" style="flex:1;" onchange="updateLevel2()">
+                        <select id="level1" style="flex:1;" onchange="run()">
                             <option value="廣告整體方向">廣告整體方向</option>
                             <option value="素材與版位表現">素材與版位表現</option>
                             <option value="客層表現">客層表現</option>
                             <option value="受眾表現">受眾表現</option>
                             <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
                         </select>
-                        <select id="level2" style="flex:1;"></select>
                     </div>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
                         <input type="text" id="obsInput" placeholder="描述內容..." style="flex:2;">
@@ -132,7 +139,9 @@
                     <div class="toolbar">
                         <button onclick="format('bold')">B</button>
                         <button onclick="format('underline')">U</button>
-                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:18px;">
+                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none; cursor:pointer;">
+                        <button onclick="format('insertUnorderedList')">• 清單</button>
+                        <button onclick="format('insertOrderedList')">1. 清單</button>
                     </div>
                     <div id="stageInsight" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -142,7 +151,9 @@
                     <div class="toolbar">
                         <button onclick="format('bold')">B</button>
                         <button onclick="format('underline')">U</button>
-                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:18px;">
+                        <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none; cursor:pointer;">
+                        <button onclick="format('insertUnorderedList')">• 清單</button>
+                        <button onclick="format('insertOrderedList')">1. 清單</button>
                     </div>
                     <div id="stageAction" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -165,8 +176,6 @@
     <div id="historyModal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; align-items:center;"><h2>📜 歷史紀錄</h2><span class="close" onclick="closeHistory()">&times;</span></div><div id="historyList" class="history-list"></div></div></div>
 
     <script>
-
-        // 修正 2: 補齊 db 的括號與邏輯
         const db = {
             "廣告整體方向": {
                 insight: ["觀察廣告整體成效，${val} ${comp}，顯示目前帳戶投遞策略能有效維持穩定走勢。", "檢視本週整體數據，${val} ${comp}，反映出市場競價環境之變動。"],
@@ -174,7 +183,7 @@
             },
             "素材與版位表現": {
                 insight: ["素材方面，${val} ${comp}，反映出目前視覺切點對客群之吸引力。", "分析素材回饋，${val} ${comp}反映出目前素材方向符合市場趨勢。"],
-                action: ["已完成表現較差之素材汰換，並針對${val}之成效反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
+                action: ["已完成表現較差之素材汰換，並針對${val}之成饋反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
             },
             "客層表現": {
                 insight: ["分析客層表現，${val} ${comp}，顯示目前廣告能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
@@ -191,13 +200,6 @@
         };
 
         function format(cmd, val = null) { document.execCommand(cmd, false, val); run(); }
-
-        function updateLevel2() {
-            const l1 = document.getElementById('level1').value;
-            const l2 = document.getElementById('level2');
-            l2.innerHTML = "";
-            (level2Options[l1] || []).forEach(opt => l2.add(new Option(opt, opt)));
-        }
 
         function formatCompVal(val, metric) {
             if (!val) return "";
@@ -221,7 +223,8 @@
             const text = pool[Math.floor(Math.random() * pool.length)].replace('${val}', input).replace('${comp}', compStr);
             const target = document.getElementById(type === 'insight' ? 'stageInsight' : 'stageAction');
             target.innerHTML += (target.innerHTML ? '<br>' : '') + text;
-            document.getElementById('obsInput').value = ""; run();
+            document.getElementById('obsInput').value = ""; document.getElementById('comp_this').value = ""; document.getElementById('comp_prev').value = "";
+            run();
         }
 
         function parseBulkData() {
@@ -324,7 +327,7 @@
         function exportTemplates() { alert('設定已匯出'); }
         function importTemplates() { alert('設定已匯入'); }
 
-        window.onload = () => { updateLevel2(); run(); };
+        window.onload = () => { run(); };
     </script>
 </body>
 </html>
