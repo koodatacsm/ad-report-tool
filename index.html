@@ -165,14 +165,6 @@
     <div id="historyModal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; align-items:center;"><h2>📜 歷史紀錄</h2><span class="close" onclick="closeHistory()">&times;</span></div><div id="historyList" class="history-list"></div></div></div>
 
     <script>
-        // 修正 1: 補齊 level2Options 的括號
-        const level2Options = { 
-            "廣告整體方向": ["曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"],  
-            "素材與版位表現": ["曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"],
-            "客層表現": ["曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"],
-            "受眾表現": ["曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"],
-            "搜尋與關鍵字分析": ["搜尋字詞","曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"]
-        };
 
         // 修正 2: 補齊 db 的括號與邏輯
         const db = {
