@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.1 - 富文本穩定預覽版</title>
+    <title>廣告週報生成小工具 v32.2 - 富文本穩定預覽版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -112,6 +112,9 @@
                         <select id="level1" style="flex:1;" onchange="updateLevel2()">
                             <option value="廣告整體方向">廣告整體方向</option>
                             <option value="素材與版位表現">素材與版位表現</option>
+                            <option value="客層表現">客層表現</option>
+                            <option value="受眾表現">受眾表現</option>
+                            <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
                         </select>
                         <select id="level2" style="flex:1;"></select>
                     </div>
@@ -164,10 +167,29 @@
     <div id="historyModal" class="modal"><div class="modal-content"><div style="display:flex; justify-content:space-between; align-items:center;"><h2>📜 歷史紀錄</h2><span class="close" onclick="closeHistory()">&times;</span></div><div id="historyList" class="history-list"></div></div></div>
 
     <script>
-        const level2Options = { "廣告整體方向": ["轉換成本", "點擊數", "點擊成本"], "素材與版位表現": ["點閱率", "素材表現"] };
+        const level2Options = { "廣告整體方向": ["曝光數", "點擊數", "點擊成本", "點閱率", "轉換數", "轉換成本", "轉換率", "ROAS"],  "素材與版位表現": ["點閱率", "點擊數", "轉換數", "素材表現"],"客層與受眾表現": ["互動率", "點擊成本", "轉換數"],"搜尋與關鍵字分析": ["搜尋字詞", "點擊數", "轉換數"]
         const db = {
-            "廣告整體方向": { insight: ["觀察廣告成效，${val} ${comp}。"], action: ["針對${val}趨勢，已完成調整。"] },
-            "素材與版位表現": { insight: ["素材表現方面，${val} ${comp}。"], action: ["已完成汰換，針對${val}優化。"] }
+            "廣告整體方向": {
+                insight: ["觀察廣告整體成效，${val} ${comp}，顯示目前帳戶投遞策略能有效維持穩定走勢。", "檢視本週整體數據，${val} ${comp}，反映出市場競價環境之變動。"],
+                action: ["針對目前${val}趨勢，已完成出價參數校正，以穩定長期之獲客成本。", "下週計畫進行深度診斷，並視情況調整出價策略以最大化效益。"]
+            },
+            "素材與版位表現": {
+                insight: ["素材方面，${val} ${comp}，反映出目前視覺切點對客群之吸引力。", "分析素材回饋，${val} ${comp}反映出目前素材方向符合市場趨勢。"],
+                action: ["已完成表現較差之素材汰換，並針對${val}之成效反饋加強推廣力道。", "下週預計測試新素材組件，重點放在強化${val}之表現。"]
+            },
+
+            "客層表現": {
+                insight: ["分析客層表現，${val} ${comp}，顯示目前廣告能有效觸及目標族群。", "檢視客層數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
+                action: ["本週已針對受眾${val}之反饋，微調了特定年齡與性別之出價權重。", "下週預計監測客層${val}之走勢，並評估是否導入更精細標籤。"]
+            },
+
+            "受眾表現": {
+                insight: ["分析受眾表現，${val} ${comp}，顯示目前廣告信號能有效觸及目標族群。", "檢視受眾數據，${val} ${comp}，反映出主力客群之受眾特徵。"],
+                action: ["本週已針對受眾${val}之反饋，微調了 ${val} ${comp} 之出價權重。", "下週預計監測受眾${val}之數據走勢，滾動式調整出價幅度。"]
+            },
+            "搜尋與關鍵字分析": {
+                insight: ["觀察關鍵字表現，${val} ${comp}，反映出核心字組成功攔截精準流量。", "搜尋分析顯示，${val} ${comp}，顯示廣告在高度搜尋意圖受眾中具備競爭力。"],
+                action: ["針對關鍵字${val}之現狀，已執行字詞比對模式優化並排除雜訊。", "下週計畫針對「${val}」之搜量趨勢觀測，並根據反饋調整出價。"]
         };
 
         // 文字格式化指令
@@ -263,8 +285,8 @@
                 `廣告成效：${perf.join('、')}<br>` +
                 `${progress}<br>` +
                 `【優化分析與建議】<br>` +
-                `數據洞察：<br>${getVal('stageInsight') || '尚無洞察內容'}<br><br>` +
-                `下一步行動：<br>${getVal('stageAction') || '尚無行動規劃'}<br><br>` +
+                `數據洞察：<br>${getVal('stageInsight') || '洞察內容'}<br><br>` +
+                `下一步行動：<br>${getVal('stageAction') || '行動規劃'}<br><br>` +
                 `Best regards,`;
         }
 
