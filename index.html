@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.4 - 精準解析版</title>
+    <title>廣告週報生成小工具 v32.5 - 精準對應版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -56,8 +56,8 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v32.4</h1>
-            <span class="update-date">最後更新：2026/01/22 (精準解析與自訂指標版)</span>
+            <h1>廣告週報生成小工具 v32.5</h1>
+            <span class="update-date">最後更新：2026/01/22 (解析關鍵字修正版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -237,7 +237,6 @@
             run();
         }
 
-        // 新增自訂指標輸入框
         function addCustomMetric() {
             const container = document.getElementById('customMetricsList');
             const div = document.createElement('div');
@@ -257,20 +256,21 @@
             let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
             const h = data[0], v = data[data.length - 1];
             
-            // v32.4 修正關鍵字對應邏輯
+            // v32.5 修正：加入 exclude 機制，避免「點擊」抓到「單次點擊出價」
             const m = { 
-                imp: ["曝光"], 
-                click: ["點擊"], 
-                conv: ["轉換"], 
-                ctr: ["點閱率", "CTR"], 
-                cpc: ["單次點擊成本", "平均單次點擊出價", "CPC"], 
-                cpa: ["單次轉換成本", "單次轉換費用", "CPA"], 
-                progress: ["進度"] 
+                imp: { keys: ["曝光"], exclude: [] }, 
+                click: { keys: ["點擊"], exclude: ["單次", "出價", "成本"] }, 
+                conv: { keys: ["轉換"], exclude: ["單次", "成本"] }, 
+                ctr: { keys: ["點閱率", "CTR"], exclude: [] }, 
+                cpc: { keys: ["單次點擊出價", "平均單次點擊出價", "CPC"], exclude: [] }, 
+                cpa: { keys: ["單次轉換成本", "單次轉換費用", "CPA"], exclude: [] }, 
+                progress: { keys: ["進度"], exclude: [] } 
             };
             
             h.forEach((header, idx) => {
                 for (let k in m) {
-                    if (m[k].some(key => header.includes(key))) {
+                    // 必須包含 key 且 不包含 exclude
+                    if (m[k].keys.some(key => header.includes(key)) && !m[k].exclude.some(ex => header.includes(ex))) {
                         let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '') : "";
                         if (k === 'progress') { document.getElementById('v-progress').value = val; }
                         else if (document.getElementById('v-' + k)) {
@@ -307,7 +307,6 @@
                 perf.push(`${labels[ck.value]} ${formatCompVal(getVal('v-' + ck.value), labels[ck.value])}`);
             });
             
-            // 抓取自訂指標
             document.querySelectorAll('.custom-row').forEach(row => {
                 const name = row.querySelector('.custom-name').value;
                 const val = row.querySelector('.custom-val').value;
