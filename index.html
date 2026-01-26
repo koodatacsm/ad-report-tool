@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.3 - 完整功能版</title>
+    <title>廣告週報生成小工具 v32.4 - 精準解析版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -31,6 +31,11 @@
         .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
         .metric-item input { width: auto; margin-right: 6px; }
         
+        /* 自訂指標區域樣式 */
+        #customMetricContainer { margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
+        .custom-row { display: flex; gap: 8px; margin-bottom: 5px; align-items: center; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; background: #eee; color: #333; border: 1px solid #ccc; }
+        
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
         
@@ -51,8 +56,8 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v32.3</h1>
-            <span class="update-date">最後更新：2026/01/22 (完整功能修復版)</span>
+            <h1>廣告週報生成小工具 v32.4</h1>
+            <span class="update-date">最後更新：2026/01/22 (精準解析與自訂指標版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -110,6 +115,11 @@
                     <div id="div-ctr" class="input-group hidden"><label>CTR%</label><input type="text" id="v-ctr" oninput="run()"></div>
                     <div id="div-cpc" class="input-group hidden"><label>CPC</label><input type="text" id="v-cpc" oninput="run()"></div>
                     <div id="div-cpa" class="input-group hidden"><label>CPA</label><input type="text" id="v-cpa" oninput="run()"></div>
+                </div>
+
+                <div id="customMetricContainer">
+                    <button class="btn-sm" onclick="addCustomMetric()">＋ 新增自訂指標</button>
+                    <div id="customMetricsList" style="margin-top: 8px;"></div>
                 </div>
 
                 <div class="builder-box">
@@ -207,7 +217,7 @@
             let num = parseFloat(clean);
             if (isNaN(num)) return val;
             let formatted = new Intl.NumberFormat('zh-TW').format(num);
-            if (["成本", "CPC", "CPA"].some(k => metric.includes(k))) return "$" + formatted;
+            if (["成本", "CPC", "CPA", "單次點擊", "單次轉換"].some(k => metric.includes(k))) return "$" + formatted;
             if (["率", "進度", "CTR"].some(k => metric.includes(k))) return formatted + "%";
             return formatted;
         }
@@ -227,13 +237,37 @@
             run();
         }
 
+        // 新增自訂指標輸入框
+        function addCustomMetric() {
+            const container = document.getElementById('customMetricsList');
+            const div = document.createElement('div');
+            div.className = 'custom-row';
+            div.innerHTML = `
+                <input type="text" class="custom-name" placeholder="指標名稱 (如: ROAS)" style="flex:1;" oninput="run()">
+                <input type="text" class="custom-val" placeholder="數值" style="flex:1;" oninput="run()">
+                <button class="btn-sm" style="color:red;" onclick="this.parentElement.remove(); run()">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
         function parseBulkData() {
             const raw = document.getElementById('bulkPaste').value.trim();
             if (!raw) return;
             const lines = raw.split(/\n/).map(line => line.split(/\t/));
             let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
             const h = data[0], v = data[data.length - 1];
-            const m = { imp: ["曝光"], click: ["點擊"], conv: ["轉換"], ctr: ["CTR"], cpc: ["CPC"], cpa: ["CPA"], progress: ["進度"] };
+            
+            // v32.4 修正關鍵字對應邏輯
+            const m = { 
+                imp: ["曝光"], 
+                click: ["點擊"], 
+                conv: ["轉換"], 
+                ctr: ["點閱率", "CTR"], 
+                cpc: ["單次點擊成本", "平均單次點擊出價", "CPC"], 
+                cpa: ["單次轉換成本", "單次轉換費用", "CPA"], 
+                progress: ["進度"] 
+            };
+            
             h.forEach((header, idx) => {
                 for (let k in m) {
                     if (m[k].some(key => header.includes(key))) {
@@ -271,6 +305,13 @@
             const labels = {imp:"曝光", click:"點擊", conv:"轉換", ctr:"CTR", cpc:"CPC", cpa:"CPA"};
             document.querySelectorAll('.m-check:checked').forEach(ck => {
                 perf.push(`${labels[ck.value]} ${formatCompVal(getVal('v-' + ck.value), labels[ck.value])}`);
+            });
+            
+            // 抓取自訂指標
+            document.querySelectorAll('.custom-row').forEach(row => {
+                const name = row.querySelector('.custom-name').value;
+                const val = row.querySelector('.custom-val').value;
+                if (name && val) perf.push(`${name} ${val}`);
             });
             
             const progress = getVal('v-progress') ? `目前花費進度：${getVal('v-progress')}%<br>` : '';
