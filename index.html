@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.5 - 精準對應版</title>
+    <title>廣告週報生成小工具 v32.6 - 進度狀態強化版</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -56,8 +56,8 @@
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v32.5</h1>
-            <span class="update-date">最後更新：2026/01/22 (解析關鍵字修正版)</span>
+            <h1>廣告週報生成小工具 v32.6</h1>
+            <span class="update-date">最後更新：2026/01/22 (新增進度狀態欄位)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
@@ -76,9 +76,10 @@
                     <textarea id="bulkPaste" rows="2" placeholder="貼入數據..." oninput="parseBulkData()"></textarea>
                 </div>
                 
-                <div style="display:grid; grid-template-columns: 2fr 1fr; gap:10px; margin-bottom:10px;">
+                <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px; margin-bottom:10px;">
                     <div><label>客戶名稱</label><input type="text" id="client" placeholder="輸入名稱..." oninput="run()"></div>
-                    <div><label style="color:var(--danger)">花費進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
+                    <div><label style="color:var(--danger)">進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
+                    <div><label>進度狀態</label><input type="text" id="v-progress-status" placeholder="如: 進度正常" oninput="run()"></div>
                 </div>
                 
                 <div style="margin-bottom:10px;">
@@ -151,7 +152,6 @@
                         <button onclick="format('underline')">U</button>
                         <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none; cursor:pointer;">
                         <button onclick="format('insertUnorderedList')">• 清單</button>
-                        <button onclick="format('insertOrderedList')">1. 清單</button>
                     </div>
                     <div id="stageInsight" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -163,7 +163,6 @@
                         <button onclick="format('underline')">U</button>
                         <input type="color" onchange="format('foreColor', this.value)" style="width:30px; height:20px; padding:0; border:none; cursor:pointer;">
                         <button onclick="format('insertUnorderedList')">• 清單</button>
-                        <button onclick="format('insertOrderedList')">1. 清單</button>
                     </div>
                     <div id="stageAction" class="editor" contenteditable="true" oninput="run()"></div>
                 </div>
@@ -256,7 +255,6 @@
             let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
             const h = data[0], v = data[data.length - 1];
             
-            // v32.5 修正：加入 exclude 機制，避免「點擊」抓到「單次點擊出價」
             const m = { 
                 imp: { keys: ["曝光"], exclude: [] }, 
                 click: { keys: ["點擊"], exclude: ["單次", "出價", "成本"] }, 
@@ -269,7 +267,6 @@
             
             h.forEach((header, idx) => {
                 for (let k in m) {
-                    // 必須包含 key 且 不包含 exclude
                     if (m[k].keys.some(key => header.includes(key)) && !m[k].exclude.some(ex => header.includes(ex))) {
                         let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '') : "";
                         if (k === 'progress') { document.getElementById('v-progress').value = val; }
@@ -313,14 +310,22 @@
                 if (name && val) perf.push(`${name} ${val}`);
             });
             
-            const progress = getVal('v-progress') ? `目前花費進度：${getVal('v-progress')}%<br>` : '';
+            // v32.6 進度與狀態連動邏輯
+            const progPercent = getVal('v-progress');
+            const progStatus = getVal('v-progress-status');
+            let progressLine = '';
+            if (progPercent) {
+                progressLine = `目前花費進度：${progPercent}%`;
+                if (progStatus) progressLine += ` (${progStatus})`;
+                progressLine += '<br>';
+            }
 
             document.getElementById('preview').innerHTML = `Dear all,<br><br>` +
                 `附件為 ${getVal('client') || '[客戶]'} ${platforms.join(' + ') || '[平台]'} 廣告報表，請查閱。<br><br>` +
                 `【帳戶狀況說明】<br>` +
                 `廣告期間：${s} - ${e}<br>` +
                 `廣告成效：${perf.join('、')}<br>` +
-                `${progress}<br>` +
+                `${progressLine}<br>` +
                 `【優化分析與建議】<br>` +
                 `數據洞察：<br>${getVal('stageInsight') || '尚無洞察內容'}<br><br>` +
                 `下一步行動：<br>${getVal('stageAction') || '尚無行動規劃'}<br><br>` +
