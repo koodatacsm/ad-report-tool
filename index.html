@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>廣告週報生成小工具 v32.7</title>
+    <title>廣告週報生成小工具 v32.8</title>
     <style>
         :root { --g-blue: #1a73e8; --g-gray: #5f6368; --bg: #f8f9fa; --border: #dadce0; --success: #34a853; --danger: #d93025; --accent: #673ab7; --warning: #fbc02d; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -20,7 +20,7 @@
         .toolbar button { background: white; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; font-size: 11px; font-weight: bold; border-radius: 3px; }
         .editor { min-height: 100px; border: 1px solid var(--border); padding: 12px; border-radius: 0 0 4px 4px; font-size: 13px; background: white; overflow-y: auto; line-height: 1.6; }
         
-        .import-box { background: #fffde7; border: 1px dashed #fbc02d; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        .import-box { background: #fffde7; border: 1px dashed #fbc02d; padding: 12px; border-radius: 4px; margin-bottom: 20px; }
         .platform-selector { display: flex; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
         .platform-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
         .platform-item input { margin-right: 4px; width: auto; }
@@ -29,57 +29,49 @@
         .metric-item { display: flex; align-items: center; font-size: 12px; cursor: pointer; }
         .metric-item input { width: auto; margin-right: 6px; }
         
+        .section-title { color: var(--g-blue); border-left: 4px solid var(--g-blue); padding-left: 8px; margin: 20px 0 10px 0; font-size: 14px; font-weight: bold; }
+
         .builder-box { background: #e8f0fe; padding: 15px; border-radius: 6px; border: 1px solid #c1d5fa; margin-top: 15px; }
         .stage-box { background: #fff; padding: 10px; border: 1px solid var(--border); border-radius: 4px; margin-top: 10px; }
         
         #preview { white-space: normal; font-size: 13px; line-height: 1.7; color: #3c4043; background: white; padding: 24px; border-radius: 4px; border: 1px solid #ddd; min-height: 550px; overflow-y: auto; }
+        
         .btn { background: var(--g-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .btn-add { background: var(--accent); border-radius: 20px; flex: 1; margin-top: 8px; }
         .btn-outline { background: white; color: var(--g-gray); border: 1px solid var(--border); font-size: 11px; padding: 4px 8px; }
         .hidden { display: none; }
-        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 8px; max-height: 80vh; display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
     <header>
         <div>
-            <h1>廣告週報生成小工具 v32.7</h1>
-            <span class="update-date">最後更新：2026/01/22 (勾選進度與指標重排版)</span>
+            <h1>廣告週報生成小工具 v32.8</h1>
+            <span class="update-date">最後更新：2026/01/26 (UI 邏輯優化版)</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
-            <button class="btn" style="background:var(--accent)" onclick="openHistory()">📜 歷史紀錄</button>
             <button class="btn btn-outline" onclick="resetDefault()">🔄 重置</button>
             <select id="templateLoader" style="width: 150px;" onchange="loadTemplate()"><option value="">選擇客戶範本</option></select>
-            <button class="btn btn-outline" onclick="exportTemplates()">🔗 匯出</button>
+            <button class="btn btn-outline" onclick="copy()">📋 複製預覽</button>
         </div>
     </header>
     <main>
         <div class="card">
             <div class="card-header">數據匯入與策略生成 <button class="btn" style="background:var(--success)" onclick="saveTemplate()">💾 儲存範本</button></div>
             <div class="content">
+                
                 <div class="import-box">
                     <label>⚡ 數據快速解析器</label>
                     <textarea id="bulkPaste" rows="2" placeholder="貼入數據..." oninput="parseBulkData()"></textarea>
                 </div>
-                
-                <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div><label>客戶名稱</label><input type="text" id="client" placeholder="輸入名稱..." oninput="run()"></div>
-                    <div><label style="color:var(--danger)">進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
-                    <div>
-                        <label>進度狀態</label>
-                        <select id="v-progress-status-select" onchange="toggleProgressOther()">
-                            <option value="進度正常">進度正常</option>
-                            <option value="進度超前">進度超前</option>
-                            <option value="進度落後">進度落後</option>
-                            <option value="其他">其他：自行填寫</option>
-                        </select>
-                        <input type="text" id="v-progress-status-other" class="hidden" placeholder="請輸入進度狀態..." style="margin-top:5px;" oninput="run()">
-                    </div>
+
+                <div class="section-title">1. 基本資訊</div>
+                <div style="margin-bottom:15px;">
+                    <label>客戶名稱</label>
+                    <input type="text" id="client" placeholder="輸入名稱..." oninput="run()">
                 </div>
-                
-                <div style="margin-bottom:10px;">
-                    <label>投放平台</label>
+
+                <div style="margin-bottom:15px;">
+                    <label>2. 投放平台</label>
                     <div class="platform-selector">
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google PMax" onchange="run()"> Google PMax</label>
                         <label class="platform-item"><input type="checkbox" class="p-check" value="Google KWS" onchange="run()"> Google KWS</label>
@@ -89,12 +81,14 @@
                     </div>
                 </div>
 
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <div class="section-title">2. 廣告期間</div>
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
                     <div style="flex:1;"><label>開始日期</label><input type="date" id="sDate" onchange="run()"></div>
                     <div style="flex:1;"><label>結束日期</label><input type="date" id="eDate" onchange="run()"></div>
                 </div>
-                
-                <label style="color:var(--g-blue)">成效指標 (勾選後自動按正確順序排列)</label>
+
+                <div class="section-title">3. 廣告成效數據</div>
+                <label>指標勾選 (預覽將按此順序自動排列)</label>
                 <div class="metric-selector">
                     <label class="metric-item"><input type="checkbox" class="m-check" value="imp" onchange="toggleInputs()"> 曝光</label>
                     <label class="metric-item"><input type="checkbox" class="m-check" value="click" onchange="toggleInputs()"> 點擊</label>
@@ -106,7 +100,7 @@
                     <label class="metric-item"><input type="checkbox" class="m-check" value="cvr" onchange="toggleInputs()"> CVR</label>
                 </div>
 
-                <div id="inputGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
+                <div id="inputGrid" style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:15px;">
                     <div id="div-imp" class="input-group hidden"><label>曝光</label><input type="text" id="v-imp" oninput="run()"></div>
                     <div id="div-click" class="input-group hidden"><label>點擊</label><input type="text" id="v-click" oninput="run()"></div>
                     <div id="div-ctr" class="input-group hidden"><label>CTR%</label><input type="text" id="v-ctr" oninput="run()"></div>
@@ -117,13 +111,27 @@
                     <div id="div-cvr" class="input-group hidden"><label>CVR%</label><input type="text" id="v-cvr" oninput="run()"></div>
                 </div>
 
+                <div class="section-title">4. 預算與進度</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                    <div><label style="color:var(--danger)">進度 (%)</label><input type="text" id="v-progress" placeholder="如: 85" oninput="run()"></div>
+                    <div>
+                        <label>進度狀態</label>
+                        <select id="v-progress-status-select" onchange="toggleProgressOther()">
+                            <option value="進度正常">進度正常</option>
+                            <option value="進度超前">進度超前</option>
+                            <option value="進度落後">進度落後</option>
+                            <option value="其他">其他：自行填寫</option>
+                        </select>
+                        <input type="text" id="v-progress-status-other" class="hidden" placeholder="請填寫進度說明..." style="margin-top:5px;" oninput="run()">
+                    </div>
+                </div>
+
+                <div class="section-title">5. 優化建議與洞察</div>
                 <div class="builder-box">
-                    <label style="color:var(--accent)">🔍 優化建議生成</label>
                     <div style="display:flex; gap:8px; margin-bottom:8px;">
-                        <select id="level1" style="flex:1;" onchange="run()">
+                        <select id="level1" style="flex:1;">
                             <option value="廣告整體方向">廣告整體方向</option>
                             <option value="素材與版位表現">素材與版位表現</option>
-                            <option value="客層表現">客層表現</option>
                             <option value="搜尋與關鍵字分析">搜尋與關鍵字分析</option>
                         </select>
                     </div>
@@ -153,93 +161,17 @@
         <div class="card">
             <div class="card-header">最終報表預覽 
                 <div>
-                    <button class="btn" style="background:var(--warning); color:black;" onclick="saveToHistory()">封存紀錄</button>
-                    <button class="btn" onclick="copy()">複製文字</button>
+                    <button class="btn" style="background:var(--warning); color:black;" onclick="saveToHistory()">💾 封存紀錄</button>
                 </div>
             </div>
-            <div class="content" style="background: #f1f3f4;"><div id="preview"></div></div>
+            <div class="content" style="background: #f1f3f4;">
+                <div id="preview"></div>
+            </div>
         </div>
     </main>
 
-    <div id="historyModal" class="modal"><div class="modal-content"><h2>📜 歷史紀錄</h2><div id="historyList"></div><button onclick="closeHistory()">關閉</button></div></div>
-
     <script>
-        const db = {
-            "廣告整體方向": { insight: ["觀察廣告整體成效，${val} ${comp}。"], action: ["針對趨勢，已完成出價校正。"] },
-            "素材與版位表現": { insight: ["素材方面，${val} ${comp}，反映視覺吸引力。"], action: ["已完成素材汰換作業。"] },
-            "客層表現": { insight: ["分析客層，${val} ${comp}，顯示能有效觸及目標。"], action: ["已微調特定客群之出價。"] },
-            "搜尋與關鍵字分析": { insight: ["觀察關鍵字，${val} ${comp}。"], action: ["已優化字詞比對模式。"] }
-        };
-
-        function toggleProgressOther() {
-            const select = document.getElementById('v-progress-status-select');
-            const other = document.getElementById('v-progress-status-other');
-            if (select.value === '其他') { other.classList.remove('hidden'); }
-            else { other.classList.add('hidden'); }
-            run();
-        }
-
-        function format(cmd, val = null) { document.execCommand(cmd, false, val); run(); }
-
-        function formatCompVal(val, metric) {
-            if (!val) return "";
-            let clean = val.toString().replace(/[$,%\s]/g, '');
-            let num = parseFloat(clean);
-            if (isNaN(num)) return val;
-            let formatted = new Intl.NumberFormat('zh-TW').format(num);
-            if (["CPC", "CPA", "單次", "花費"].some(k => metric.includes(k))) return "$" + formatted;
-            if (["率", "進度", "CTR", "CVR"].some(k => metric.includes(k))) return formatted + "%";
-            return formatted;
-        }
-
-        function addStage(type) {
-            const l1 = document.getElementById('level1').value;
-            const input = document.getElementById('obsInput').value;
-            if (!input) return;
-            const curVal = document.getElementById('comp_this').value;
-            const preVal = document.getElementById('comp_prev').value;
-            let compStr = (curVal && preVal) ? `(${formatCompVal(preVal, '數字')} → ${formatCompVal(curVal, '數字')})` : "";
-            const text = db[l1][type][0].replace('${val}', input).replace('${comp}', compStr);
-            const target = document.getElementById(type === 'insight' ? 'stageInsight' : 'stageAction');
-            target.innerHTML += (target.innerHTML ? '<br>' : '') + text;
-            document.getElementById('obsInput').value = ""; run();
-        }
-
-        function parseBulkData() {
-            const raw = document.getElementById('bulkPaste').value.trim();
-            if (!raw) return;
-            const lines = raw.split(/\n/).map(line => line.split(/\t/));
-            let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
-            const h = data[0], v = data[data.length - 1];
-            const m = { 
-                imp: ["曝光"], click: ["點擊"], ctr: ["CTR", "點閱率"], 
-                cpc: ["CPC", "單次點擊"], spend: ["花費", "費用"], 
-                conv: ["轉換", "成果"], cpa: ["CPA", "單次轉換"], 
-                cvr: ["CVR", "轉換率"], progress: ["進度"] 
-            };
-            h.forEach((header, idx) => {
-                for (let k in m) {
-                    if (m[k].some(key => header.includes(key))) {
-                        let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '') : "";
-                        if (k === 'progress') { document.getElementById('v-progress').value = val; }
-                        else if (document.getElementById('v-' + k)) {
-                            document.getElementById('v-' + k).value = val;
-                            document.querySelector(`.m-check[value="${k}"]`).checked = true;
-                        }
-                    }
-                }
-            });
-            toggleInputs();
-        }
-
-        function toggleInputs() {
-            document.querySelectorAll('.m-check').forEach(ck => {
-                const div = document.getElementById('div-' + ck.value);
-                if(div) ck.checked ? div.classList.remove('hidden') : div.classList.add('hidden');
-            });
-            run();
-        }
-
+        // 1. 核心邏輯：順序生成
         function run() {
             const getVal = (id) => {
                 const el = document.getElementById(id);
@@ -247,30 +179,28 @@
                 return el.contentEditable === "true" ? el.innerHTML : el.value;
             };
 
+            const client = getVal('client') || '[客戶名稱]';
             const s = getVal('sDate').replace(/-/g, '/') || '__/__/__', e = getVal('eDate').replace(/-/g, '/') || '__/__/__';
             const platforms = Array.from(document.querySelectorAll('.p-check:checked')).map(p => p.value);
             
-            // 重要：固定產出順序
+            // 指標排序邏輯
             const order = ["imp", "click", "ctr", "cpc", "spend", "conv", "cpa", "cvr"];
             const labels = {imp:"曝光", click:"點擊", ctr:"CTR", cpc:"CPC", spend:"花費", conv:"轉換", cpa:"CPA", cvr:"CVR"};
             let perf = [];
-            
             order.forEach(key => {
                 const ck = document.querySelector(`.m-check[value="${key}"]`);
-                if (ck && ck.checked) {
-                    perf.push(`${labels[key]} ${formatCompVal(getVal('v-' + key), labels[key])}`);
-                }
+                if (ck && ck.checked) perf.push(`${labels[key]} ${formatCompVal(getVal('v-' + key), labels[key])}`);
             });
 
             const progPercent = getVal('v-progress');
             const progStatusSelect = document.getElementById('v-progress-status-select').value;
             const progStatusOther = getVal('v-progress-status-other');
             const finalStatus = (progStatusSelect === '其他') ? progStatusOther : progStatusSelect;
-            
             let progressLine = progPercent ? `目前花費進度：${progPercent}% (${finalStatus})<br>` : '';
 
+            // 組合預覽文字 (對應順序)
             document.getElementById('preview').innerHTML = `Dear all,<br><br>` +
-                `附件為 ${getVal('client') || '[客戶]'} ${platforms.join(' + ') || '[平台]'} 廣告週報，請查閱。<br><br>` +
+                `附件為 ${client} ${platforms.join(' + ') || '[平台]'} 廣告週報，請查閱。<br><br>` +
                 `【帳戶狀況說明】<br>` +
                 `廣告期間：${s} - ${e}<br>` +
                 `廣告成效：${perf.join('、')}<br>` +
@@ -281,15 +211,76 @@
                 `Best regards,`;
         }
 
+        // 2. 工具函數
+        function toggleProgressOther() {
+            const select = document.getElementById('v-progress-status-select');
+            const other = document.getElementById('v-progress-status-other');
+            select.value === '其他' ? other.classList.remove('hidden') : other.classList.add('hidden');
+            run();
+        }
+
+        function formatCompVal(val, metric) {
+            if (!val) return "";
+            let clean = val.toString().replace(/[$,%\s]/g, '');
+            let num = parseFloat(clean);
+            if (isNaN(num)) return val;
+            let formatted = new Intl.NumberFormat('zh-TW').format(num);
+            if (["CPC", "CPA", "花費"].some(k => metric.includes(k))) return "$" + formatted;
+            if (["%", "率", "CTR", "CVR"].some(k => metric.includes(k))) return formatted + "%";
+            return formatted;
+        }
+
+        function toggleInputs() {
+            document.querySelectorAll('.m-check').forEach(ck => {
+                const div = document.getElementById('div-' + ck.value);
+                if(div) ck.checked ? div.classList.remove('hidden') : div.classList.add('hidden');
+            });
+            run();
+        }
+
+        function parseBulkData() {
+            const raw = document.getElementById('bulkPaste').value.trim();
+            if (!raw) return;
+            const lines = raw.split(/\n/).map(line => line.split(/\t/));
+            let data = lines.length < 2 ? raw.split(/\n/).map(line => line.trim().split(/\s{2,}/)) : lines;
+            const h = data[0], v = data[data.length - 1];
+            const m = { 
+                imp: ["曝光"], click: ["點擊"], ctr: ["CTR", "點閱率"], cpc: ["CPC", "單次點擊"], 
+                spend: ["花費", "費用"], conv: ["轉換", "成果"], cpa: ["CPA", "單次轉換"], 
+                cvr: ["CVR", "轉換率"], progress: ["進度"] 
+            };
+            h.forEach((header, idx) => {
+                for (let k in m) {
+                    if (m[k].some(key => header.includes(key))) {
+                        let val = v[idx] ? v[idx].replace(/[$,%\s]/g, '') : "";
+                        if (k === 'progress') document.getElementById('v-progress').value = val;
+                        else if (document.getElementById('v-' + k)) {
+                            document.getElementById('v-' + k).value = val;
+                            document.querySelector(`.m-check[value="${k}"]`).checked = true;
+                        }
+                    }
+                }
+            });
+            toggleInputs();
+        }
+
+        function addStage(type) {
+            const input = document.getElementById('obsInput').value;
+            if (!input) return;
+            const cur = document.getElementById('comp_this').value, pre = document.getElementById('comp_prev').value;
+            let compStr = (cur && pre) ? `(${formatCompVal(pre, '數字')} → ${formatCompVal(cur, '數字')})` : "";
+            const target = document.getElementById(type === 'insight' ? 'stageInsight' : 'stageAction');
+            target.innerHTML += (target.innerHTML ? '<br>' : '') + `• ${input} ${compStr}`;
+            document.getElementById('obsInput').value = ""; run();
+        }
+
         function copy() {
             const p = document.getElementById('preview');
             const r = document.createRange(); r.selectNode(p);
             window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
             document.execCommand('copy'); alert('報表已複製！');
         }
-        function saveTemplate() { alert('範本儲存成功'); }
-        function openHistory() { document.getElementById('historyModal').style.display='block'; }
-        function closeHistory() { document.getElementById('historyModal').style.display='none'; }
+
         function resetDefault() { location.reload(); }
         window.onload = () => { run(); };
     </script>
